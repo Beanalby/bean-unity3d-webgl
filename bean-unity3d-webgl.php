@@ -12,7 +12,6 @@ Autor URI: http://beanalby.net
 /* } */
 /* register_activation_hook( __FILE__, 'bean_unity3d_activation' ); */
 
-global $bean_unity3d_db_version;
 $bean_unity3d_db_version = '1.0';
 
 class Bean_unity3d_webgl {
@@ -25,6 +24,8 @@ class Bean_unity3d_webgl {
 		$sql = "CREATE TABLE $table_name (
 				id mediumint(9) NOT NULL AUTO_INCREMENT,
 				name text NOT NULL,
+				slug text,
+				release_date date,
 				path text,
 				version text,
 				PRIMARY KEY  (id)
@@ -32,9 +33,30 @@ class Bean_unity3d_webgl {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		dbDelta( $sql );
 		add_option( 'bean_unity3d_db_version', $bean_unity3d_db_version);
+		$wpdb->insert($table_name, array(
+			'id' => null,
+			'name' => 'Lickitank (LudumDare32)',
+			'slug' => 'LudumDare34',
+			'release_date' => '2015-04-08',
+			'path' => '2018/02/LudumDare34',
+			'version' => '2017.3'));
+		$wpdb->insert($table_name, array(
+			'id' => null,
+			'name' => 'Kitten Karnage (LudumDare33)',
+			'slug' => 'LudumDare33',
+			'release_date' => '2015-08-17',
+			'path' => '2018/02/LudumDare33',
+			'version' => '2017.3'));
+		$wpdb->insert($table_name, array(
+			'id' => null,
+			'name' => 'Buildinator (LudumDare34)',
+			'slug' => 'LudumDare34',
+			'release_date' => '2015-12-16',
+			'path' => '2018/02/LudumDare34',
+			'version' => '2017.3'));
 	}
 
-	function uninstall() {
+	public static function uninstall() {
 		global $wpdb;
 		$table_name = $wpdb->prefix . "bean_unity3d_games";
 
@@ -65,7 +87,7 @@ class Bean_unity3d_webgl {
 
 	public function __construct() {
 		register_activation_hook( __FILE__, array($this, 'install'));
-		register_uninstall_hook(__FILE__, array($this, 'uninstall'));
+		register_uninstall_hook(__FILE__, 'Bean_unity3d_webgl::uninstall');
 		add_action( 'plugins_loaded', array($this, 'update_db_check'));
 		add_action('admin_menu', array($this, 'register_menu'));
 		add_action('upload_mimes', array($this, 'upload_mimes'));
