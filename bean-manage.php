@@ -2,23 +2,21 @@
 
 class Bean_manage {
 
-	private $table_games;
-
 	public function add_game() {
+		/* TODO */
 	}
 
 	function list_games() {
-		global $wpdb;
-		$games = $wpdb->get_results("SELECT * FROM $this->table_games");
+		$games = $this->util->get_games();
 		foreach($games as $game) {
 			echo '<p>game: ' . $game->name . '</p>';
 		}
 	}
 
 	public function __construct() {
-		global $wpdb;
-		$this->table_games = $wpdb->prefix . 'bean_unity3d_games';
+		$this->util = new Bean_util();
 	}
+
 	public function do_page() {
 		$action = null;
 		if(!empty($_POST['action'])) {
