@@ -27,7 +27,7 @@ class Bean_util {
 		$wpdb->insert($table_name, array(
 			'id' => null,
 			'name' => 'Lickitank (LudumDare32)',
-			'slug' => 'LudumDare34',
+			'slug' => 'LudumDare32',
 			'release_date' => '2015-04-08',
 			'path' => '2018/02/LudumDare34',
 			'version' => '2017.3'));
