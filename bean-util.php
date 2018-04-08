@@ -123,6 +123,24 @@ class Bean_util {
 		return $this->table_games;
 	}
 
+	function remove_existing_media($filename) {
+		/* if the file already exists, remove it first so it doesn't try
+		   to make a new filename.  No functions to look up by full
+		   filepath, so we have to dig into DB directly. :( */
+		$fullpath = wp_upload_dir()['url'] . "/" . $filename;
+		global $wpdb;
+		$stmt = $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid='%s';", $fullpath);
+		/* echo "stmt: <pre>"; var_dump($stmt); echo "</pre>\n"; */
+		$attachmentIDs = $wpdb->get_col($stmt);
+		/* echo "+++ attachmentIDs: <pre>"; var_dump($attachmentIDs); echo "</pre>"; */
+		if($attachmentIDs) {
+			foreach($attachmentIDs as $attachmentID) {
+				/* $msg = $msg . " Overwriting existing file id <code>" . esc_html($attachmentID) . "</code>...\n"; */
+				wp_delete_attachment($attachmentID);
+			}
+		}
+	}
+
 	function update_db_check() {
 		if( get_site_option( 'bean_unity3d_db_version' ) != $this->bean_unity3d_db_version) {
 			create_tables();

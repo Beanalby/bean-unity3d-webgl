@@ -102,10 +102,6 @@ class Bean_manage {
 		$this->slug = $game->slug;
 		add_filter('upload_dir', array($this, 'customize_upload_dir'));
 		
-		/* echo '<p>upload_dir: <pre>'; */
-		/* var_dump(wp_upload_dir()); */
-		/* echo "</pre></p>\n"; */
-		
 		/* our upload has a single widget with an array of files in it, but
 		   wodpress's media_handle_upload() expects an array of widgets, each
 		   with a single file.  Rejigger things for what wordpress expects */
@@ -123,30 +119,7 @@ class Bean_manage {
 			);
 			$_FILES = array('uploadTest' => $file);
 			$msg = "Uploading <code>" . esc_html($value) . "</code>... ";
-
-			/* if the file already exists, remove it first so it doesn't try
-			   to make a new filename.  No functions to look up by full
-			   filepath, so we have to dig into DB directly. :( */
-			$fullpath = wp_upload_dir()['url'] . "/" . $value;
-			global $wpdb;
-			$stmt = $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid='%s';", $fullpath);
-			/* echo "stmt: <pre>"; var_dump($stmt); echo "</pre>\n"; */
-			$attachmentIDs = $wpdb->get_col($stmt);
-			/* echo "+++ attachmentIDs: <pre>"; var_dump($attachmentIDs); echo "</pre>"; */
-			if($attachmentIDs) {
-				foreach($attachmentIDs as $attachmentID) {
-					$msg = $msg . " Overwriting existing file id <code>" . esc_html($attachmentID) . "</code>...\n";
-					wp_delete_attachment($attachmentID);
-				}
-			}
-			/* 		echo "+++ [$fullpath]==[$attachment->guid]?<br/>\n"; */
-			/* 		if($fullpath == $attachment->guid) { */
-			/* 			echo "!!! IT MATCHES! removing $attachment->ID!<br/>\n"; */
-			/* 		} */
-			/* 	} */
-			/* } else { */
-			/* 	echo "+++ no attachments found<br/>"; */
-			/* } */
+			$this->util->remove_existing_media($value);
 
 			$attachment_id = media_handle_upload('uploadTest', 0);
 			if ( is_wp_error( $attachment_id ) ) {
