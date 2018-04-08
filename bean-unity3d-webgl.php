@@ -38,6 +38,13 @@ class Bean_unity3d_webgl {
 		// allow uploading the file types that Unity3d WebGL uses
 		$mimes['json'] = 'application/json';
 		$mimes['unityweb'] = 'application/octet-stream';
+		/* Here's a bunch that aren't extensions we use, but Wordpress needs to
+		   know about 3 or 4 letter words that may appear in filenames.
+		   Otherwise it will secretly rename
+		   "game.data.unityweb" to "game.data_.unityweb" :-/ */
+		$mimes['asm'] = 'application/octet-stream';
+		$mimes['code'] = 'application/octet-stream';
+		$mimes['data'] = 'application/octet-stream';
 		return $mimes;
 	}
 
@@ -55,6 +62,22 @@ class Bean_unity3d_webgl {
 		add_action('init', array($this, 'init_shortcodes'));
 	}
 }
+/* not actually using this stuff for now, but will in the future. */
+/* function enqueue_scripts() { */
+/* 	wp_register_script('jQueryui_widget', plugins_url('js/vendor/jquery.ui.widget.js', __FILE__), array('jquery'), '1.12.1', true); */
+/* 	wp_register_script('jQuery_fileupload', plugins_url('js/jquery.fileupload.js', __FILE__), array('jquery'), '9.21.0', true); */
+/* 	wp_register_script('bean_unity3d_webgl', plugins_url('js/bean-unity3d-webgl.js', __FILE__), array('jquery'), '1.0', true); */
+
+/* 	wp_enqueue_script('jQueryui_widget'); */
+/* 	wp_enqueue_script('jQuery_fileupload'); */
+/* 	wp_enqueue_script('bean_unity3d_webgl'); */
+
+/* 	wp_register_style( 'jQuery_fileupload', plugins_url('css/jquery.fileupload.css', __FILE__), false, '1.12.1' ); */
+/* 	wp_enqueue_style('jQuery_fileupload'); */
+/* } */
+
+/* add_action('admin_enqueue_scripts', 'enqueue_scripts'); */
+
 
 new Bean_unity3d_webgl();
 ?>

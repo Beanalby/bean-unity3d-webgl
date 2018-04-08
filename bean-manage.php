@@ -18,29 +18,130 @@ class Bean_manage {
 		}
 	}
 
-	function edit_game() {
-		$name = empty($_GET['name']) ? '' : $_GET['name'];
-		if(empty($name)) {
-			echo "Error: no name provided";
-			return;
-		}
+	function edit_game($game=null) {
+		if(empty($game)) {
+			if(empty($name)) {
+				/* no name passed as a parameter, check the query string */
+				$name = empty($_GET['name']) ? '' : $_GET['name'];
+			}
+			if(empty($name)) {
+				echo "Error: no name provided<br/>\n";
+				return;
+			}
 
-		$game = $this->util->get_game($name);
+			$game = $this->util->get_game($name);
+		}
 		if($game == null) {
+			echo "Error: game not found<br/>\n";
 			return;
 		}
 
 		global $pagenow, $plugin_page;
 		$form_action = add_query_arg('page', $plugin_page, admin_url($pagenow));
 		$form_action = add_query_arg('action', 'edit-save', $form_action);
-		echo "<form method='POST' action='$form_action'>\n";
+		echo "<h2>Edit Game</h2>\n";
+		echo "<form method='POST' action='$form_action' enctype='multipart/form-data'>\n";
 		echo "Name: <input type='text' name='name' size='30' value='$game->name'/><br/>\n";
-		echo "<input type='submit'/><br/>";
+		echo "slug: $game->slug<br/>\n";
+		echo "path: $game->path<br/>\n";
+		echo "File: <input type='file' name='uploadTest[]' multiple/><br/>\n";
+		echo "<input type='submit' value='Save Changes'/><br/>";
 		echo "</form>\n";
 	}
 
 	function  edit_save_game() {
-		echo '<p>Saving ' . $_POST['name'] . "!</p>\n";
+		$name = empty($_POST['name']) ? '' : $_POST['name'];
+		if(empty($name)) {
+			echo "Error: no name provided";
+			return;
+		}
+		$game = $this->util->get_game($name);
+		if($game == null) {
+			echo "Game [" . $game . "] not found";
+			return;
+		}
+
+		/* make uploads for this game go to its own directory */
+		$this->slug = $game->slug;
+		add_filter('upload_dir', array($this, 'customize_upload_dir'));
+		
+		echo "<p>Saving $name!</p>\n";
+		/* echo '<p>upload_dir: <pre>'; */
+		/* var_dump(wp_upload_dir()); */
+		/* echo "</pre></p>\n"; */
+		
+		/* our upload has a single widget with an array of files in it, but
+		   wodpress's media_handle_upload() expects an array of widgets, each
+		   with a single file.  Rejigger things for what wordpress expects */
+		$files = $_FILES['uploadTest'];
+		foreach($files['name'] as $key => $value) {
+			if(empty($value)) {
+				continue;
+			}
+			$file = array(
+				'name' => $files['name'][$key],
+				'type' => $files['type'][$key],
+				'tmp_name' => $files['tmp_name'][$key],
+				'error' => $files['error'][$key],
+				'size' => $files['size'][$key]
+			);
+			$_FILES = array('uploadTest' => $file);
+			echo "Uploading <code>$value</code>... ";
+
+			/* if the file already exists, remove it first so it doesn't try
+			   to make a new filename.  No functions to look up by full
+			   filepath, so we have to dig into DB directly. :( */
+			$fullpath = wp_upload_dir()['url'] . "/" . $value;
+			global $wpdb;
+			$stmt = $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid='%s';", $fullpath);
+			/* echo "stmt: <pre>"; var_dump($stmt); echo "</pre>\n"; */
+			$attachmentIDs = $wpdb->get_col($stmt);
+			/* echo "+++ attachmentIDs: <pre>"; var_dump($attachmentIDs); echo "</pre>"; */
+			if($attachmentIDs) {
+				foreach($attachmentIDs as $attachmentID) {
+					echo "Overwriting existing file id <code>$attachmentID</code>...\n";
+					wp_delete_attachment($attachmentID);
+				}
+			}
+			/* 		echo "+++ [$fullpath]==[$attachment->guid]?<br/>\n"; */
+			/* 		if($fullpath == $attachment->guid) { */
+			/* 			echo "!!! IT MATCHES! removing $attachment->ID!<br/>\n"; */
+			/* 		} */
+			/* 	} */
+			/* } else { */
+			/* 	echo "+++ no attachments found<br/>"; */
+			/* } */
+
+			$attachment_id = media_handle_upload('uploadTest', 0);
+			if ( is_wp_error( $attachment_id ) ) {
+				echo "<b>Error uploading</b>: ";
+				foreach($attachment_id->errors['upload_error'] as $error) {
+					echo "$error ";
+				}
+				echo "<br/>\n";
+			} else {
+				echo "Success.<br/>\n";
+			}
+		}
+		echo "<hr/>\n";
+		$this->edit_game($game);
+	}
+
+	function customize_upload_dir($param) {
+		$mydir = '/placeholder';
+		if(isset($this->slug)) {
+			$mydir = '/' . $this->slug;
+		}
+		$param['path'] = $param['path'] . $mydir;
+		$param['url'] = $param['url'] . $mydir;
+	
+		error_log("path={$param['path']}");
+		error_log("url={$param['url']}");
+		error_log("subdir={$param['subdir']}");
+		error_log("basedir={$param['basedir']}");
+		error_log("baseurl={$param['baseurl']}");
+		error_log("error={$param['error']}");
+		return $param;
 	}
 
 	public function __construct() {
