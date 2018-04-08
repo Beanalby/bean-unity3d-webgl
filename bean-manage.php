@@ -2,19 +2,53 @@
 
 class Bean_manage {
 
-	public function add_game() {
-		/* TODO */
+	function add_game($name=NULL) {
+		echo "<h2>Add Game</h2>\n";
+
+		global $pagenow, $plugin_page;
+		$form_action = add_query_arg('page', $plugin_page, admin_url($pagenow));
+		$form_action = add_query_arg('action', 'add-save', $form_action);
+
+		echo "<form method='POST' action='$form_action'>\n";
+		echo "Name: <input type='text' name='name' value='" . esc_html($name) . "'/><br/>";
+		echo "<input type='submit' value='Add Game'/><br/>\n";
+		echo "</form>\n";
+	}
+
+	function add_game_save() {
+		$name = empty($_POST['name']) ? '' : stripslashes($_POST['name']);
+		if(empty($name)) {
+			$this->show_error("Error: no name provided");
+			return;
+		}
+		$result = $this->util->add_game($name);
+		if(is_wp_error($result)) {
+			$this->show_error("Error adding game: " . esc_html($result->get_error_message()));
+			return;
+		}
+		/* echo '<p>result: <pre>'; var_dump($result); echo "</pre></p>\n"; */
+		$game = $this->util->get_game($result);
+		if(is_wp_error($game)) {
+			$this->show_error("Internal error: couldn't find game [$result] just inserted" . $game);
+			return;
+		}
+
+		$this->show_info("New game <code>" . esc_html($name) . "</code> added.");
+		$this->edit_game($game);
 	}
 
 	function list_games() {
 		global $pagenow, $plugin_page;
 		$urlBase = add_query_arg('page', $plugin_page, admin_url($pagenow));
-		$urlBase = add_query_arg('action', 'edit', $urlBase);
+		$editBase = add_query_arg('action', 'edit', $urlBase);
 		$games = $this->util->get_games();
 		foreach($games as $game) {
-			$editUrl = add_query_arg('gameid', $game->id, $urlBase);
-			echo "<p><a href='$editUrl'>Edit</a> $game->name</p>";
+			$editUrl = add_query_arg('gameid', $game->id, $editBase);
+			echo "<p><a href='$editUrl'>Edit</a> " . esc_html($game->name) . "</p>";
 		}
+
+		$addUrl = add_query_arg('action', 'add', $urlBase);
+		echo "<p><a href='$addUrl'>Add a new game</a></p>\n";
 	}
 
 	function edit_game($game=null) {
@@ -24,13 +58,13 @@ class Bean_manage {
 				$gameid = empty($_GET['gameid']) ? '' : $_GET['gameid'];
 			}
 			if(empty($gameid)) {
-				echo "!!! Error: no game id provided<br/>\n";
+				$this->show_error("Error: no game id provided");
 				return;
 			}
 			$game = $this->util->get_game($gameid);
 		}
-		if($game == null) {
-			echo "!!! Error: game not found<br/>\n";
+		if($game == null || is_wp_error($game)) {
+			$this->show_error("Error: game not found");
 			return;
 		}
 
@@ -40,23 +74,23 @@ class Bean_manage {
 		echo "<h2>Edit Game</h2>\n";
 		echo "<form method='POST' action='$form_action' enctype='multipart/form-data'>\n";
 		echo "<input type='hidden' name='gameid' value='$game->id'/>\n";
-		echo "Name: <input type='text' name='name' size='30' value='$game->name'/><br/>\n";
-		echo "slug: $game->slug<br/>\n";
-		echo "path: $game->path<br/>\n";
+		echo "Name: <input type='text' name='name' size='30' value='" . esc_html($game->name) . "'/><br/>\n";
+		echo "slug: " . esc_html($game->slug) . "<br/>\n";
+		echo "path: " . esc_html($game->path) . "<br/>\n";
 		echo "File: <input type='file' name='uploadTest[]' multiple/><br/>\n";
 		echo "<input type='submit' value='Save Changes'/><br/>";
 		echo "</form>\n";
 	}
 
-	function  edit_save_game() {
+	function  edit_game_save() {
 		$gameid = empty($_POST['gameid']) ? '' : $_POST['gameid'];
 		if(empty($gameid)) {
-			echo "Error: no game id provided";
+			$this->show_error("Error: no game id provided");
 			return;
 		}
 		$game = $this->util->get_game($gameid);
-		if($game == null) {
-			echo "Game id $gameid not found";
+		if(is_wp_error($game)) {
+			$this->show_error("Game id " . esc_html($gameid) . " not found");
 			return;
 		}
 
@@ -64,7 +98,6 @@ class Bean_manage {
 		$this->slug = $game->slug;
 		add_filter('upload_dir', array($this, 'customize_upload_dir'));
 		
-		echo "<p>Saving $game->name!</p>\n";
 		/* echo '<p>upload_dir: <pre>'; */
 		/* var_dump(wp_upload_dir()); */
 		/* echo "</pre></p>\n"; */
@@ -85,7 +118,7 @@ class Bean_manage {
 				'size' => $files['size'][$key]
 			);
 			$_FILES = array('uploadTest' => $file);
-			echo "Uploading <code>$value</code>... ";
+			$msg = "Uploading <code>" . esc_html($value) . "</code>... ";
 
 			/* if the file already exists, remove it first so it doesn't try
 			   to make a new filename.  No functions to look up by full
@@ -98,7 +131,7 @@ class Bean_manage {
 			/* echo "+++ attachmentIDs: <pre>"; var_dump($attachmentIDs); echo "</pre>"; */
 			if($attachmentIDs) {
 				foreach($attachmentIDs as $attachmentID) {
-					echo "Overwriting existing file id <code>$attachmentID</code>...\n";
+					$msg = $msg . " Overwriting existing file id <code>" . esc_html($attachmentID) . "</code>...\n";
 					wp_delete_attachment($attachmentID);
 				}
 			}
@@ -113,17 +146,33 @@ class Bean_manage {
 
 			$attachment_id = media_handle_upload('uploadTest', 0);
 			if ( is_wp_error( $attachment_id ) ) {
-				echo "<b>Error uploading</b>: ";
+				$msg = $msg . "<b>Error uploading</b>: ";
 				foreach($attachment_id->errors['upload_error'] as $error) {
-					echo "$error ";
+					$msg = $msg . esc_html($error) . " ";
 				}
-				echo "<br/>\n";
+				$this->show_error($msg);
 			} else {
-				echo "Success.<br/>\n";
+				$msg = $msg . "Success.";
+				$this->show_info($msg);
 			}
 		}
-		echo "<hr/>\n";
+		$this->show_info("Game " . esc_html($game->name) . " saved.");
 		$this->edit_game($game);
+	}
+
+	function show_error($msg, $dismissible=false) {
+		$this->internal_show_msg($msg, $dismissible, 'error');
+	}
+	function show_info($msg, $dismissible=false) {
+		$this->internal_show_msg($msg, $dismissible, 'updated');
+	}
+	/* Do not call show_msg directly, use show_error or show_info */
+	function internal_show_msg($msg, $dismissible, $typeClass) {
+		$dismissClass="";
+		if($dismissible) {
+			$dismissClass="is-dismissible";
+		}
+		echo "<div class='notice $typeClass $dismissClass'><p>$msg</p></div>";
 	}
 
 	function customize_upload_dir($param) {
@@ -156,17 +205,20 @@ class Bean_manage {
 		case 'add':
 			$this->add_game();
 			break;
+		case 'add-save':
+			$this->add_game_save();
+			break;
 		case 'edit':
 			$this->edit_game();
 			break;
 		case 'edit-save':
-			$this->edit_save_game();
+			$this->edit_game_save();
 			break;
 		case 'list':
 			$this->list_games();
 			break;
 		default:
-			echo "!!! Error: unknown action '" . esc_html($action) . "'";
+			$this->show_error("Error: unknown action '" . esc_html($action) . "'");
 			break;
 		}
 	}

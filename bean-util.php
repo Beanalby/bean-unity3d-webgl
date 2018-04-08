@@ -8,7 +8,7 @@ class Bean_util {
 	/* create tables on installation */
 	public function create_tables() {
 		global $wpdb;
-		$table_name = $this->util->get_table_name();
+		$table_name = $this->get_table_name();
 		$charset_collate = $wpdb->get_charset_collate();
 		$sql = "CREATE TABLE $table_name (
 				id mediumint(9) NOT NULL AUTO_INCREMENT,
@@ -47,22 +47,61 @@ class Bean_util {
 			'version' => '2017.3'));
 	}
 
+	public function add_game($name) {
+		$name = trim($name);
+		if(empty($name)) {
+			return new WP_Error('paramerror', 'Empty game name');
+		}
+		$slug = sanitize_title_with_dashes($name, NULL, 'save');
+		/* echo "[$name] becomes [$slug]<br/>\n"; */
+		/* echo '<p>upload_dir: <pre>'; var_dump(wp_upload_dir()); echo "</pre></p>\n"; */
+
+		/* check if directory already exists.  If so, make a new slug */
+		$slugBase = $slug; $loop=1;
+		while(true) {
+			$dir = wp_upload_dir()['path'] . '/' . $slug;
+			/* echo "+++ does $dir exist?<br/>"; */
+			if(!file_exists($dir)) {
+				/* echo "+++ directory doesn't exist, using it\n"; */
+				break;
+			}
+			/* try a new suffix and do it again */
+			$loop += 1;
+			$slug = $slugBase . '-' . strval($loop);
+			/* echo "+++ dir exists, incremented loop=$loop, made slug=$slug<br/>\n"; */
+		}
+		/* echo "+++ using slug=$slug<br/>\n"; */
+		$path = wp_upload_dir()['subdir'] . '/' . $slug;
+		global $wpdb;
+		$result = $wpdb->insert($this->get_table_name(), array(
+			'id' => null,
+			'name' => $name,
+			'slug' => $slug,
+			'release_date' => NULL,
+			'path' => $path,
+			'version' => '2017.3'));
+		if(!$result) {
+			return new WP_Error('sqlerror', $wpdb->last_error, $wpdb->last_query);
+		}
+		return $wpdb->insert_id;
+	}
+
 	public function drop_tables() {
 		global $wpdb;
-		$table_name = $this->util->get_table_name();
+		$table_name = $this->get_table_name();
 
 		delete_option( 'bean_unity3d_db_version' );
 		$sql = "DROP TABLE IF EXISTS {$table_name}";
 		$wpdb->query( $sql );
 	}
 
-	public function get_game($gameid = null) {
+	public function get_game($gameid) {
 		global $wpdb;
 		$stmt = $wpdb->prepare("SELECT * FROM $this->table_games where id=%s", $gameid);
 		$results = $wpdb->get_results($stmt);
 
 		if(count($results) === 0) {
-			echo 'Error: game <tt>' . esc_html($gameid) . '</tt> not found in table <tt>' . esc_html($this->table_games) . '</tt>';
+			return new WP_Error('game <tt>' . esc_html($gameid) . '</tt> not found in table <tt>' . esc_html($this->table_games) . '</tt>');
 			return null;
 		}
 
