@@ -9,30 +9,28 @@ class Bean_manage {
 	function list_games() {
 		global $pagenow, $plugin_page;
 		$urlBase = add_query_arg('page', $plugin_page, admin_url($pagenow));
+		$urlBase = add_query_arg('action', 'edit', $urlBase);
 		$games = $this->util->get_games();
 		foreach($games as $game) {
-			$name = $game->name;
-			$editUrl = add_query_arg('action', 'edit', $urlBase);
-			$editUrl = add_query_arg('name', $name, $editUrl);
-			echo "<p><a href='$editUrl'>Edit</a> $name</p>";
+			$editUrl = add_query_arg('gameid', $game->id, $urlBase);
+			echo "<p><a href='$editUrl'>Edit</a> $game->name</p>";
 		}
 	}
 
 	function edit_game($game=null) {
 		if(empty($game)) {
-			if(empty($name)) {
-				/* no name passed as a parameter, check the query string */
-				$name = empty($_GET['name']) ? '' : $_GET['name'];
+			/* no game passed as a parameter, check the query string */
+			if(empty($gameid)) {
+				$gameid = empty($_GET['gameid']) ? '' : $_GET['gameid'];
 			}
-			if(empty($name)) {
-				echo "Error: no name provided<br/>\n";
+			if(empty($gameid)) {
+				echo "!!! Error: no game id provided<br/>\n";
 				return;
 			}
-
-			$game = $this->util->get_game($name);
+			$game = $this->util->get_game($gameid);
 		}
 		if($game == null) {
-			echo "Error: game not found<br/>\n";
+			echo "!!! Error: game not found<br/>\n";
 			return;
 		}
 
@@ -41,6 +39,7 @@ class Bean_manage {
 		$form_action = add_query_arg('action', 'edit-save', $form_action);
 		echo "<h2>Edit Game</h2>\n";
 		echo "<form method='POST' action='$form_action' enctype='multipart/form-data'>\n";
+		echo "<input type='hidden' name='gameid' value='$game->id'/>\n";
 		echo "Name: <input type='text' name='name' size='30' value='$game->name'/><br/>\n";
 		echo "slug: $game->slug<br/>\n";
 		echo "path: $game->path<br/>\n";
@@ -50,14 +49,14 @@ class Bean_manage {
 	}
 
 	function  edit_save_game() {
-		$name = empty($_POST['name']) ? '' : $_POST['name'];
-		if(empty($name)) {
-			echo "Error: no name provided";
+		$gameid = empty($_POST['gameid']) ? '' : $_POST['gameid'];
+		if(empty($gameid)) {
+			echo "Error: no game id provided";
 			return;
 		}
-		$game = $this->util->get_game($name);
+		$game = $this->util->get_game($gameid);
 		if($game == null) {
-			echo "Game [" . $game . "] not found";
+			echo "Game id $gameid not found";
 			return;
 		}
 
@@ -65,7 +64,7 @@ class Bean_manage {
 		$this->slug = $game->slug;
 		add_filter('upload_dir', array($this, 'customize_upload_dir'));
 		
-		echo "<p>Saving $name!</p>\n";
+		echo "<p>Saving $game->name!</p>\n";
 		/* echo '<p>upload_dir: <pre>'; */
 		/* var_dump(wp_upload_dir()); */
 		/* echo "</pre></p>\n"; */

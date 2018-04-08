@@ -56,19 +56,19 @@ class Bean_util {
 		$wpdb->query( $sql );
 	}
 
-	public function get_game($name = null) {
+	public function get_game($gameid = null) {
 		global $wpdb;
-		$stmt = $wpdb->prepare("SELECT * FROM $this->table_games where name=%s", $name);
+		$stmt = $wpdb->prepare("SELECT * FROM $this->table_games where id=%s", $gameid);
 		$results = $wpdb->get_results($stmt);
 
 		if(count($results) === 0) {
-			echo 'Error: game <tt>' . esc_html($name) . '</tt> not found in table <tt>' . esc_html($this->table_games) . '</tt>';
+			echo 'Error: game <tt>' . esc_html($gameid) . '</tt> not found in table <tt>' . esc_html($this->table_games) . '</tt>';
 			return null;
 		}
 
 		/* sanity check: shouldn't happen, BUT... */
 		if(count($results) > 1) {
-			echo 'Internal error: multiple games (' . count($results) . ') found for name <tt>' . esc_html($name) . '</tt> in table <tt>' . esc_html($this->table_games) . '</tt>';
+			echo 'Internal error: multiple games (' . count($results) . ') found for game id <tt>' . esc_html($gameid) . '</tt> in table <tt>' . esc_html($this->table_games) . '</tt>';
 			return null;
 		}
 
