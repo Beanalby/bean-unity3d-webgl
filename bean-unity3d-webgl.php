@@ -52,6 +52,11 @@ class Bean_unity3d_webgl {
 		add_shortcode('bean_unity3d_game', 'bean_unity3d_shortcode_game');
 	}
 
+	function enqueue_scripts() {
+	wp_register_style( 'bean_unity3d_webgl', plugins_url('css/bean-unity3d-webgl.css', __FILE__), false, '1.0' );
+	wp_enqueue_style('bean_unity3d_webgl');
+	}
+
 	public function __construct() {
 		$this->util = new Bean_util();
 		register_activation_hook( __FILE__, array($this, 'install'));
@@ -60,6 +65,7 @@ class Bean_unity3d_webgl {
 		add_action('admin_menu', array($this, 'register_menu'));
 		add_action('upload_mimes', array($this, 'upload_mimes'));
 		add_action('init', array($this, 'init_shortcodes'));
+		add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
 	}
 }
 /* not actually using this stuff for now, but will in the future. */
@@ -76,7 +82,6 @@ class Bean_unity3d_webgl {
 /* 	wp_enqueue_style('jQuery_fileupload'); */
 /* } */
 
-/* add_action('admin_enqueue_scripts', 'enqueue_scripts'); */
 
 
 new Bean_unity3d_webgl();

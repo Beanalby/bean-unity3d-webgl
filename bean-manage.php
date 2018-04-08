@@ -42,13 +42,17 @@ class Bean_manage {
 		$urlBase = add_query_arg('page', $plugin_page, admin_url($pagenow));
 		$editBase = add_query_arg('action', 'edit', $urlBase);
 		$games = $this->util->get_games();
-		foreach($games as $game) {
-			$editUrl = add_query_arg('gameid', $game->id, $editBase);
-			echo "<p><a href='$editUrl'>Edit</a> " . esc_html($game->name) . "</p>";
+		echo "<h2>Games</h2>";
+		if(empty($games)) {
+			echo "<p>No games yet.  Make one!</p>";
+		} else {
+			foreach($games as $game) {
+				$editUrl = add_query_arg('gameid', $game->id, $editBase);
+				echo "<p><a href='$editUrl'>" . $this->get_icon_html('pencil', 'Edit') . "Edit</a> " . esc_html($game->name) . "</p>";
+			}
 		}
-
 		$addUrl = add_query_arg('action', 'add', $urlBase);
-		echo "<p><a href='$addUrl'>Add a new game</a></p>\n";
+		echo "<p><a href='$addUrl'>" . $this->get_icon_html('add', 'Add') . " Add a new game</a></p>\n";
 	}
 
 	function edit_game($game=null) {
@@ -160,6 +164,9 @@ class Bean_manage {
 		$this->edit_game($game);
 	}
 
+	function get_icon_html($name, $alt) {
+		return "<img class='inline-icon' src='" . plugin_dir_url(__FILE__) . "images/" . esc_html($name) . ".png' alt='" . esc_html($alt) . "'/>";
+	}
 	function show_error($msg, $dismissible=false) {
 		$this->internal_show_msg($msg, $dismissible, 'error');
 	}
