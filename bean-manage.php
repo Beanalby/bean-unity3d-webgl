@@ -71,17 +71,41 @@ class Bean_manage {
 			$this->show_error("Error: game not found");
 			return;
 		}
-
+		$this->util->set_upload_dir($game);
 		global $pagenow, $plugin_page;
 		$form_action = add_query_arg('page', $plugin_page, admin_url($pagenow));
 		$form_action = add_query_arg('action', 'edit-save', $form_action);
 		echo "<h2>Edit Game</h2>\n";
 		echo "<form method='POST' action='$form_action' enctype='multipart/form-data'>\n";
+		// basic info
 		echo "<input type='hidden' name='gameid' value='$game->id'/>\n";
 		echo "Name: <input type='text' name='name' size='30' value='" . esc_html($game->name) . "'/><br/>\n";
 		echo "slug: " . esc_html($game->slug) . "<br/>\n";
 		echo "path: " . esc_html($game->path) . "<br/>\n";
-		echo "File: <input type='file' name='uploadTest[]' multiple/><br/>\n";
+
+		// show existing files
+		$files = $this->util->get_game_files($game);
+		if(!$files) {
+			echo "<h3>Uploaded Files</h3>\n";
+			echo " No files uploaded.  Upload the files from your <code>webgl/build</code> directory.<br/>\n";
+		} else {
+			echo "<ul>\n";
+			echo "<li><h3><input type='checkbox' class='checkAll' title='delete all' data-group='deleteFile[]'/>" . count($files) . " Uploaded Files</h3></li>\n";
+			foreach($files as $file) {
+				$name = substr($file->guid, strrpos($file->guid, '/')+1);
+				$escName = esc_html($name);
+				$id = $file->id;
+				$widgetId = "file" . $id;
+
+				echo "<li>";
+				echo "<input id='$widgetId' type='checkbox' title='delete' name='deleteFile[]' value='$id'/>\n";
+				echo "<label for='$widgetId'>$escName</label></li>\n";
+			}
+			echo "</ul>\n";
+		}
+
+		// new files
+		echo "<p>Upload: <input type='file' name='uploadTest[]' multiple/></p>\n";
 		echo "<input type='submit' value='Save Changes'/><br/>";
 		echo "</form>\n";
 	}
@@ -98,10 +122,18 @@ class Bean_manage {
 			return;
 		}
 
-		/* make uploads for this game go to its own directory */
-		$this->slug = $game->slug;
-		add_filter('upload_dir', array($this, 'customize_upload_dir'));
+		$this->util->set_upload_dir($game);
 		
+		/* echo "deleteFile: <pre>"; var_dump($_POST['deleteFile']); echo "</pre>"; */
+		if(!empty($_POST['deleteFile'])) {
+			foreach($_POST['deleteFile'] as $deleteFile) {
+				$msg = "Deleting file id <b>" . esc_html($deleteFile) . "</b>.";
+				$this->show_info($msg);
+				if(false === wp_delete_attachment($deleteFile, true)) {
+					$this->show_error("Error deleting file");
+				}
+			}
+		}
 		/* our upload has a single widget with an array of files in it, but
 		   wodpress's media_handle_upload() expects an array of widgets, each
 		   with a single file.  Rejigger things for what wordpress expects */
@@ -153,23 +185,6 @@ class Bean_manage {
 			$dismissClass="is-dismissible";
 		}
 		echo "<div class='notice $typeClass $dismissClass'><p>$msg</p></div>";
-	}
-
-	function customize_upload_dir($param) {
-		$mydir = '/placeholder';
-		if(isset($this->slug)) {
-			$mydir = '/' . $this->slug;
-		}
-		$param['path'] = $param['path'] . $mydir;
-		$param['url'] = $param['url'] . $mydir;
-	
-		error_log("path={$param['path']}");
-		error_log("url={$param['url']}");
-		error_log("subdir={$param['subdir']}");
-		error_log("basedir={$param['basedir']}");
-		error_log("baseurl={$param['baseurl']}");
-		error_log("error={$param['error']}");
-		return $param;
 	}
 
 	public function __construct() {

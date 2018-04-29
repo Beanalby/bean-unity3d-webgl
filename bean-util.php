@@ -119,6 +119,15 @@ class Bean_util {
 		return $wpdb->get_results("SELECT * FROM $this->table_games");
 	}
 
+	public function get_game_files($game) {
+		global $wpdb;
+		// assume set_upload_dir has been called;
+		$fullpath = wp_upload_dir()['url'] . "/%";
+		/* echo "fullpath: $fullpath<br/>\n"; */
+		$stmt = $wpdb->prepare("SELECT id, guid FROM $wpdb->posts WHERE guid like '%s';", $fullpath);
+		return $wpdb->get_results($stmt);
+	}
+
 	public function get_table_name() {
 		return $this->table_games;
 	}
@@ -139,6 +148,21 @@ class Bean_util {
 				wp_delete_attachment($attachmentID);
 			}
 		}
+	}
+
+	function set_upload_dir($game) {
+		/* make uploads for this game go to its own directory */
+		$this->slug = $game->slug;
+		add_filter('upload_dir', array($this, 'customize_upload_dir'));
+	}
+
+	function customize_upload_dir($param) {
+		if(!isset($this->slug)) {
+			return;
+		}
+		$param['path'] = $param['path'] . '/' . $this->slug;
+		$param['url'] = $param['url'] . '/' . $this->slug;
+		return $param;
 	}
 
 	function update_db_check() {

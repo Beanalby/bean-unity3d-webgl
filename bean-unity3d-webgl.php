@@ -53,6 +53,9 @@ class Bean_unity3d_webgl {
 	}
 
 	function enqueue_scripts() {
+	wp_register_script('bean_unity3d_webgl', plugins_url('js/bean-unity3d-webgl.js', __FILE__), array('jquery'), '1.0', true);
+	wp_enqueue_script('bean_unity3d_webgl');
+
 	wp_register_style( 'bean_unity3d_webgl', plugins_url('css/bean-unity3d-webgl.css', __FILE__), false, '1.0' );
 	wp_enqueue_style('bean_unity3d_webgl');
 	}
