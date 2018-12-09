@@ -42,6 +42,7 @@ class Bean_unity3d_webgl {
 		   know about 3 or 4 letter words that may appear in filenames.
 		   Otherwise it will secretly rename
 		   "game.data.unityweb" to "game.data_.unityweb" :-/ */
+		$mimes['wasm'] = 'application/octet-stream';
 		$mimes['asm'] = 'application/octet-stream';
 		$mimes['code'] = 'application/octet-stream';
 		$mimes['data'] = 'application/octet-stream';
