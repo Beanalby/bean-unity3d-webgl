@@ -15,6 +15,7 @@ class Bean_util {
 				name text NOT NULL,
 				slug text,
 				release_date date,
+				updated_date date,
 				path text,
 				version text,
 				PRIMARY KEY  (id)
@@ -101,7 +102,7 @@ class Bean_util {
 		$results = $wpdb->get_results($stmt);
 
 		if(count($results) === 0) {
-			return new WP_Error('game <tt>' . esc_html($gameid) . '</tt> not found in table <tt>' . esc_html($this->table_games) . '</tt>');
+			return new WP_Error('game id <tt>' . esc_html($gameid) . '</tt> not found in table <tt>' . esc_html($this->table_games) . '</tt>');
 			return null;
 		}
 
@@ -111,6 +112,24 @@ class Bean_util {
 			return null;
 		}
 
+		return $results[0];
+	}
+
+	public function get_game_by_name($name) {
+		global $wpdb;
+		$stmt = $wpdb->prepare("SELECT * FROM $this->table_games where name=%s", $name);
+		$results = $wpdb->get_results($stmt);
+
+		if(count($results) === 0) {
+			return new WP_Error('game name <tt>' . esc_html($name) . '</tt> not found in table <tt>' . esc_html($this->table_games) . '</tt>');
+			return null;
+		}
+
+		/* sanity check: shouldn't happen, BUT... */
+		if(count($results) > 1) {
+			echo 'Internal error: multiple games (' . count($results) . ') found for game name <tt>' . esc_html($gameid) . '</tt> in table <tt>' . esc_html($this->table_games) . '</tt>';
+			return null;
+		}
 		return $results[0];
 	}
 
