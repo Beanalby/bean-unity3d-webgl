@@ -169,6 +169,38 @@ class Bean_util {
 		}
 	}
 
+	public function delete_game($game) {
+		$count = $this->delete_game_files($game);
+		$this->delete_game_record($game);
+		return $count;
+	}
+
+	function delete_game_files($game) {
+		$count = 0;
+		$files = $this->get_game_files($game);
+		if($files) {
+			foreach($files as $file) {
+				wp_delete_attachment($file->id, true);
+				$count++;
+			}
+		}
+		return $count;
+	}
+
+	function delete_game_record($game) {
+		global $wpdb;
+		$count = $wpdb->delete($this->get_table_name(), array(
+			'id' => $game->id));
+		if(0 === $count) {
+			return new WP_Error('Could not find record for game id <tt>'
+			. esc_html($game->id) . '</tt> in games table to remove');
+		}
+		if(1 != $count) {
+			return new WP_Error('Expected to remove 1 row from games table, but removed '
+			. esc_html($count) . ' rows.');
+		}
+	}
+
 	function set_upload_dir($game) {
 		/* make uploads for this game go to its own directory */
 		$this->slug = $game->slug;

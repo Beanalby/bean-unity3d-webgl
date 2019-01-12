@@ -41,6 +41,7 @@ class Bean_manage {
 		global $pagenow, $plugin_page;
 		$urlBase = add_query_arg('page', $plugin_page, admin_url($pagenow));
 		$editBase = add_query_arg('action', 'edit', $urlBase);
+		$deleteBase = add_query_arg('action', 'delete', $urlBase);
 		$games = $this->util->get_games();
 		echo "<h2>Games</h2>";
 		if(empty($games)) {
@@ -48,11 +49,70 @@ class Bean_manage {
 		} else {
 			foreach($games as $game) {
 				$editUrl = add_query_arg('gameid', $game->id, $editBase);
-				echo "<p><a href='$editUrl'>" . $this->get_icon_html('pencil', 'Edit') . "Edit</a> " . esc_html($game->name) . "</p>";
+				$deleteUrl = add_query_arg('gameid', $game->id, $deleteBase);
+				echo "<p>";
+				echo "<a href='$deleteUrl'>" . $this->get_icon_html('delete', 'Edit') . "Delete</a> ";
+				echo "<a href='$editUrl'>" . $this->get_icon_html('pencil', 'Edit') . "Edit</a> ";
+				echo esc_html($game->name);
+				echo "</p>";
 			}
 		}
 		$addUrl = add_query_arg('action', 'add', $urlBase);
 		echo "<p><a href='$addUrl'>" . $this->get_icon_html('add', 'Add') . " Add a new game</a></p>\n";
+	}
+
+	function delete_game($game=null) {
+		if(empty($game)) {
+			/* no game passed as a parameter, check the query string */
+			if(empty($gameid)) {
+				$gameid = empty($_GET['gameid']) ? '' : $_GET['gameid'];
+			}
+			if(empty($gameid)) {
+				$this->show_error("Error: no game id provided");
+				return;
+			}
+			$game = $this->util->get_game($gameid);
+		}
+		if($game == null || is_wp_error($game)) {
+			$this->show_error("Error: game not found");
+			return;
+		}
+		$this->util->set_upload_dir($game);
+		echo "<p>Really delete <b>" . esc_html($game->name) . "</b> ";
+		echo "and its files in <code>" . esc_html($game->path) . "</code>?";
+		global $pagenow, $plugin_page;
+		$baseUrl = add_query_arg('page', $plugin_page, admin_url($pagenow));
+		$deleteUrl = add_query_arg('action', 'delete-confirmed', $baseUrl);
+		echo "<form method='POST' action='$deleteUrl' enctype='multipart/form-data'>\n";
+		// basic info
+		echo "<input type='hidden' name='gameid' value='$game->id'/>\n";
+		echo "<input type='submit' value='Delete Game'/>\n";
+		echo "</form>\n";
+	}
+
+	function delete_game_confirmed($game=null) {
+		if(empty($game)) {
+			/* no game passed as a parameter, check the post body */
+			if(empty($gameid)) {
+				$gameid = empty($_POST['gameid']) ? '' : $_POST['gameid'];
+			}
+			if(empty($gameid)) {
+				$this->show_error("Error: no game id provided");
+				return;
+			}
+			$game = $this->util->get_game($gameid);
+		}
+		if($game == null || is_wp_error($game)) {
+			$this->show_error("Error: game not found");
+			return;
+		}
+		$this->util->set_upload_dir($game);
+
+		$count = $this->util->delete_game($game);
+		$this->show_info("Successfully deleted game <b>"
+			. esc_html($game->name) . "</b> and " . esc_html($count)
+			. " game files");
+		$this->list_games();
 	}
 
 	function edit_game($game=null) {
@@ -110,7 +170,7 @@ class Bean_manage {
 		echo "</form>\n";
 	}
 
-	function  edit_game_save() {
+	function edit_game_save() {
 		$gameid = empty($_POST['gameid']) ? '' : $_POST['gameid'];
 		if(empty($gameid)) {
 			$this->show_error("Error: no game id provided");
@@ -202,6 +262,12 @@ class Bean_manage {
 			break;
 		case 'add-save':
 			$this->add_game_save();
+			break;
+		case 'delete':
+			$this->delete_game();
+			break;
+		case 'delete-confirmed':
+			$this->delete_game_confirmed();
 			break;
 		case 'edit':
 			$this->edit_game();
