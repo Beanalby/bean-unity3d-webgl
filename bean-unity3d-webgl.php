@@ -36,10 +36,15 @@ class Bean_unity3d_webgl {
 
 	function upload_mimes($mimes = array()) {
 		// allow uploading the file types that Unity3d WebGL uses
-		$mimes['json'] = 'application/json';
-		$mimes['unityweb'] = 'application/octet-stream';
+
+		// Wordpress detects the contents of js & json files as text/plain,
+		// and rejects uploads if our registered mimetype doesn' match it.
+		$mimes['js'] = 'text/plain';
+		$mimes['json'] = 'text/plain';
+		// same as the above, but wordpress detects it as a zip file
+		$mimes['unityweb'] = 'application/x-gzip';
 		/* Here's a bunch that aren't extensions we use, but Wordpress needs to
-		   know about 3 or 4 letter words that may appear in filenames.
+		   know about any 3 or 4 letter words that may appear between periods.
 		   Otherwise it will secretly rename
 		   "game.data.unityweb" to "game.data_.unityweb" :-/ */
 		$mimes['wasm'] = 'application/octet-stream';
@@ -85,8 +90,6 @@ class Bean_unity3d_webgl {
 /* 	wp_register_style( 'jQuery_fileupload', plugins_url('css/jquery.fileupload.css', __FILE__), false, '1.12.1' ); */
 /* 	wp_enqueue_style('jQuery_fileupload'); */
 /* } */
-
-
 
 new Bean_unity3d_webgl();
 ?>
