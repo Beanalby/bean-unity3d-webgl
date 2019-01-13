@@ -17,7 +17,9 @@ class Bean_util {
 				release_date date,
 				updated_date date,
 				path text,
-				version text,
+				json_filename text,
+				gameVersion text,
+				unityVersion text,
 				PRIMARY KEY  (id)
 			) $charset_collate;";
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -25,27 +27,30 @@ class Bean_util {
 		add_option( 'bean_unity3d_db_version', $this->bean_unity3d_db_version);
 
 		/* while in development, load it with test data */
-		$wpdb->insert($table_name, array(
-			'id' => null,
-			'name' => 'Lickitank (LudumDare32)',
-			'slug' => 'LudumDare32',
-			'release_date' => '2015-04-08',
-			'path' => '2018/02/LudumDare34',
-			'version' => '2017.3'));
-		$wpdb->insert($table_name, array(
-			'id' => null,
-			'name' => 'Kitten Karnage (LudumDare33)',
-			'slug' => 'LudumDare33',
-			'release_date' => '2015-08-17',
-			'path' => '2018/02/LudumDare33',
-			'version' => '2017.3'));
-		$wpdb->insert($table_name, array(
-			'id' => null,
-			'name' => 'Buildinator (LudumDare34)',
-			'slug' => 'LudumDare34',
-			'release_date' => '2015-12-16',
-			'path' => '2018/02/LudumDare34',
-			'version' => '2017.3'));
+		/* $wpdb->insert($table_name, array( */
+		/* 	'id' => null, */
+		/* 	'name' => 'Lickitank (LudumDare32)', */
+		/* 	'slug' => 'LudumDare32', */
+		/* 	'release_date' => '2015-04-08', */
+		/* 	'path' => '2018/02/LudumDare34', */
+		/* 	'json_filename' => 'webgl.json', */
+		/* 	'version' => '2017.3')); */
+		/* $wpdb->insert($table_name, array( */
+		/* 	'id' => null, */
+		/* 	'name' => 'Kitten Karnage (LudumDare33)', */
+		/* 	'slug' => 'LudumDare33', */
+		/* 	'release_date' => '2015-08-17', */
+		/* 	'path' => '2018/02/LudumDare33', */
+		/* 	'json_filename' => 'webgl.json', */
+		/* 	'version' => '2017.3')); */
+		/* $wpdb->insert($table_name, array( */
+		/* 	'id' => null, */
+		/* 	'name' => 'Buildinator (LudumDare34)', */
+		/* 	'slug' => 'LudumDare34', */
+		/* 	'release_date' => '2015-12-16', */
+		/* 	'path' => '2018/02/LudumDare34', */
+		/* 	'json_filename' => 'webgl.json', */
+		/* 	'version' => '2017.3')); */
 	}
 
 	public function add_game($name) {
@@ -80,7 +85,8 @@ class Bean_util {
 			'slug' => $slug,
 			'release_date' => NULL,
 			'path' => $path,
-			'version' => '2017.3'));
+			'gaméVersion', '1.0'
+			));
 		if(!$result) {
 			return new WP_Error('sqlerror', $wpdb->last_error, $wpdb->last_query);
 		}
@@ -198,6 +204,19 @@ class Bean_util {
 		if(1 != $count) {
 			return new WP_Error('Expected to remove 1 row from games table, but removed '
 			. esc_html($count) . ' rows.');
+		}
+	}
+
+	function save_json_filename($gameid, $filename) {
+		global $wpdb;
+		$numUpdated = $wpdb->update(
+			$this->get_table_name(),
+			array( 'json_filename' => $filename ),
+			array( 'id' => $gameid )
+		);
+		if($numUpdated === false) {
+			return new WP_Error("Error saving json_filename for game "
+				. esc_html($gameid), $wpdb->last_error, $wpdb->last_query);
 		}
 	}
 

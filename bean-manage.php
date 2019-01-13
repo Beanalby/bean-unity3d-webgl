@@ -156,8 +156,13 @@ class Bean_manage {
 				$escName = esc_html($name);
 				$id = $file->id;
 				$widgetId = "file" . $id;
-
-				echo "<li>";
+				$isJson = ($name === $game->json_filename);
+				$liStyle = "";
+				if($isJson) {
+					// didn't like how this looked, leaving off for now
+					/* $liStyle = "background: lightGreen"; */
+				}
+				echo "<li style='$liStyle'>";
 				echo "<input id='$widgetId' type='checkbox' title='delete' name='deleteFile[]' value='$id'/>\n";
 				echo "<label for='$widgetId'>$escName</label></li>\n";
 			}
@@ -209,6 +214,15 @@ class Bean_manage {
 				'error' => $files['error'][$key],
 				'size' => $files['size'][$key]
 			);
+
+			// if this is the .json file, make note of it for displaying game
+			if(preg_match('/.json$/', $file['name'])) {
+				$retVal = $this->util->save_json_filename($gameid, $file['name']);
+				if(is_wp_error($retVal)) {
+					$this->showInfo($retVal);
+				}
+			}
+
 			$_FILES = array('uploadTest' => $file);
 			$msg = "Uploading <code>" . esc_html($value) . "</code>... ";
 			$this->util->remove_existing_media($value);
@@ -255,7 +269,6 @@ class Bean_manage {
 	public function do_page() {
 		$action = empty($_GET['action']) ? 'list' : $_GET['action'];
 
-		echo "+++ Doing action=$action<br/>";
 		switch($action) {
 		case 'add':
 			$this->add_game();

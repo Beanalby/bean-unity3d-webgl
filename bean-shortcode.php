@@ -16,7 +16,7 @@ function bean_unity3d_shortcode_game($atts = [], $content = null, $tag = '') {
 		return "<p>Error:  [[" . $game->get_error_code() . "]]</p>";
 	}
 
-	$templateUrl = plugins_url("TemplateData-2018.2", __FILE__);
+	$templateUrl = plugins_url("TemplateData-2018.1", __FILE__);
 	$gameUrl = wp_upload_dir()['baseurl'] . $game->path;
 
 	/* $content .= "gameurl=" . $gameUrl . " <br/>\n"; */
@@ -25,7 +25,7 @@ function bean_unity3d_shortcode_game($atts = [], $content = null, $tag = '') {
 	$content .= "<script src='" . $templateUrl . "/UnityProgress.js'></script>\n";
 	$content .= "<script src='" . $gameUrl . "/UnityLoader.js'></script>\n";
 	$content .= "<script>\n";
-	$content .= "    var gameInstance = UnityLoader.instantiate(\"gameContainer\", \"" . $gameUrl . "/webgl.json\", {onProgress: UnityProgress});\n";
+	$content .= "    var gameInstance = UnityLoader.instantiate(\"gameContainer\", \"" . $gameUrl . "/" . esc_html($game->json_filename) . "\", {onProgress: UnityProgress});\n";
 	$content .= "</script>\n";
 	$content .= "<div class='webgl-content'>\n";
 	$content .= "<div id='gameContainer' style='width: " . $wporg_atts["width"] . "; height: " . $wporg_atts["height"] . "'></div>";
