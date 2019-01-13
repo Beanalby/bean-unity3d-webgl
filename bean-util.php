@@ -66,17 +66,13 @@ class Bean_util {
 		$slugBase = $slug; $loop=1;
 		while(true) {
 			$dir = wp_upload_dir()['path'] . '/' . $slug;
-			/* echo "+++ does $dir exist?<br/>"; */
 			if(!file_exists($dir)) {
-				/* echo "+++ directory doesn't exist, using it\n"; */
 				break;
 			}
 			/* try a new suffix and do it again */
 			$loop += 1;
 			$slug = $slugBase . '-' . strval($loop);
-			/* echo "+++ dir exists, incremented loop=$loop, made slug=$slug<br/>\n"; */
 		}
-		/* echo "+++ using slug=$slug<br/>\n"; */
 		$path = wp_upload_dir()['subdir'] . '/' . $slug;
 		global $wpdb;
 		$result = $wpdb->insert($this->get_table_name(), array(
@@ -85,7 +81,7 @@ class Bean_util {
 			'slug' => $slug,
 			'release_date' => NULL,
 			'path' => $path,
-			'gaméVersion', '1.0'
+			'gameVersion' => '1.0'
 			));
 		if(!$result) {
 			return new WP_Error('sqlerror', $wpdb->last_error, $wpdb->last_query);
@@ -108,14 +104,15 @@ class Bean_util {
 		$results = $wpdb->get_results($stmt);
 
 		if(count($results) === 0) {
-			return new WP_Error('game id <tt>' . esc_html($gameid) . '</tt> not found in table <tt>' . esc_html($this->table_games) . '</tt>');
-			return null;
+			return new WP_Error('no_game', 'game id $gameid not found in table ' . $this->table_games);
 		}
 
 		/* sanity check: shouldn't happen, BUT... */
 		if(count($results) > 1) {
-			echo 'Internal error: multiple games (' . count($results) . ') found for game id <tt>' . esc_html($gameid) . '</tt> in table <tt>' . esc_html($this->table_games) . '</tt>';
-			return null;
+			return new WP_Error('multiple_games',
+				'Internal error: multiple games (' . count($results)
+				. ') found for game id $gameid in table '
+				. $this->table_games);
 		}
 
 		return $results[0];
@@ -127,14 +124,14 @@ class Bean_util {
 		$results = $wpdb->get_results($stmt);
 
 		if(count($results) === 0) {
-			return new WP_Error('game name <tt>' . esc_html($name) . '</tt> not found in table <tt>' . esc_html($this->table_games) . '</tt>');
-			return null;
+			return new WP_Error('no_game', 'game name $name not found in table ' . $this->table_games);
 		}
 
 		/* sanity check: shouldn't happen, BUT... */
 		if(count($results) > 1) {
-			echo 'Internal error: multiple games (' . count($results) . ') found for game name <tt>' . esc_html($gameid) . '</tt> in table <tt>' . esc_html($this->table_games) . '</tt>';
-			return null;
+			return new WP_Error('multiple_games',
+				'Internal error: multiple games (' . count($results)
+				. ') found for game id $gameid in table ' . $this->table_games);
 		}
 		return $results[0];
 	}
@@ -166,7 +163,6 @@ class Bean_util {
 		$stmt = $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid='%s';", $fullpath);
 		/* echo "stmt: <pre>"; var_dump($stmt); echo "</pre>\n"; */
 		$attachmentIDs = $wpdb->get_col($stmt);
-		/* echo "+++ attachmentIDs: <pre>"; var_dump($attachmentIDs); echo "</pre>"; */
 		if($attachmentIDs) {
 			foreach($attachmentIDs as $attachmentID) {
 				/* $msg = $msg . " Overwriting existing file id <code>" . esc_html($attachmentID) . "</code>...\n"; */
@@ -183,6 +179,8 @@ class Bean_util {
 
 	function delete_game_files($game) {
 		$count = 0;
+
+		// remove the individual files from wordpress' list of attachments
 		$files = $this->get_game_files($game);
 		if($files) {
 			foreach($files as $file) {
@@ -190,6 +188,13 @@ class Bean_util {
 				$count++;
 			}
 		}
+
+		// also remove the directory itself, which should now be empty
+		if( !rmdir(wp_upload_dir()['path']) ) {
+			return new WP_Error('rm_fail', "Failed to remove game directory "
+			. wp_upload_dir()['path']);
+		}
+
 		return $count;
 	}
 
@@ -198,12 +203,13 @@ class Bean_util {
 		$count = $wpdb->delete($this->get_table_name(), array(
 			'id' => $game->id));
 		if(0 === $count) {
-			return new WP_Error('Could not find record for game id <tt>'
-			. esc_html($game->id) . '</tt> in games table to remove');
+			return new WP_Error('no_game', 'Could not find record for game id '
+			. esc_html($game->id) . ' in games table to remove');
 		}
 		if(1 != $count) {
-			return new WP_Error('Expected to remove 1 row from games table, but removed '
-			. esc_html($count) . ' rows.');
+			return new WP_Error('multiple_games',
+				'Expected to remove 1 row from games table, but removed '
+				. esc_html($count) . ' rows.');
 		}
 	}
 
@@ -215,7 +221,7 @@ class Bean_util {
 			array( 'id' => $gameid )
 		);
 		if($numUpdated === false) {
-			return new WP_Error("Error saving json_filename for game "
+			return new WP_Error('update_fail', "Error saving json_filename for game "
 				. esc_html($gameid), $wpdb->last_error, $wpdb->last_query);
 		}
 	}

@@ -13,7 +13,7 @@ function bean_unity3d_shortcode_game($atts = [], $content = null, $tag = '') {
 	], $atts, $tag);
 	$game = $util->get_game_by_name($wporg_atts['name']);
 	if(is_wp_error($game)) {
-		return "<p>Error:  [[" . $game->get_error_code() . "]]</p>";
+		return "<p>Error:  [[" . esc_html($game->get_error_message()) . "]]</p>";
 	}
 
 	$templateUrl = plugins_url("TemplateData-2018.1", __FILE__);

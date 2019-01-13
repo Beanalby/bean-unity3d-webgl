@@ -23,17 +23,17 @@ class Bean_manage {
 		}
 		$result = $this->util->add_game($name);
 		if(is_wp_error($result)) {
-			$this->show_error("Error adding game: " . esc_html($result->get_error_message()));
+			$this->show_error('add_error', "Error adding game: " . $result->get_error_message());
 			return;
 		}
 		/* echo '<p>result: <pre>'; var_dump($result); echo "</pre></p>\n"; */
 		$game = $this->util->get_game($result);
 		if(is_wp_error($game)) {
-			$this->show_error("Internal error: couldn't find game [$result] just inserted" . $game);
+			$this->show_error('add_error', "Internal error: couldn't find game [$result] just inserted " . $game);
 			return;
 		}
 
-		$this->show_info("New game <code>" . esc_html($name) . "</code> added.");
+		$this->show_info("New game '" . $name . "' added.");
 		$this->edit_game($game);
 	}
 
@@ -73,8 +73,11 @@ class Bean_manage {
 			}
 			$game = $this->util->get_game($gameid);
 		}
-		if($game == null || is_wp_error($game)) {
+		if($game == null) {
 			$this->show_error("Error: game not found");
+			return;
+		} else if(is_wp_error($game)) {
+			$this->show_error($game);
 			return;
 		}
 		$this->util->set_upload_dir($game);
@@ -102,16 +105,23 @@ class Bean_manage {
 			}
 			$game = $this->util->get_game($gameid);
 		}
-		if($game == null || is_wp_error($game)) {
+		if($game == null) {
 			$this->show_error("Error: game not found");
+			return;
+		} else if(is_wp_error($game)) {
+			$this->show_error($game);
 			return;
 		}
 		$this->util->set_upload_dir($game);
 
 		$count = $this->util->delete_game($game);
-		$this->show_info("Successfully deleted game <b>"
-			. esc_html($game->name) . "</b> and " . esc_html($count)
-			. " game files");
+		if(is_wp_error($count)) {
+			$this->show_error($count);
+		} else {
+			$this->show_info("Successfully deleted game "
+				. esc_html($game->name) . " and " . esc_html($count)
+				. " game files");
+		}
 		$this->list_games();
 	}
 
@@ -127,8 +137,11 @@ class Bean_manage {
 			}
 			$game = $this->util->get_game($gameid);
 		}
-		if($game == null || is_wp_error($game)) {
+		if($game == null) {
 			$this->show_error("Error: game not found");
+			return;
+		} else if(is_wp_error($game)) {
+			$this->show_error($game);
 			return;
 		}
 		$this->util->set_upload_dir($game);
@@ -192,7 +205,7 @@ class Bean_manage {
 		/* echo "deleteFile: <pre>"; var_dump($_POST['deleteFile']); echo "</pre>"; */
 		if(!empty($_POST['deleteFile'])) {
 			foreach($_POST['deleteFile'] as $deleteFile) {
-				$msg = "Deleting file id <b>" . esc_html($deleteFile) . "</b>.";
+				$msg = "Deleting file id $deleteFile";
 				$this->show_info($msg);
 				if(false === wp_delete_attachment($deleteFile, true)) {
 					$this->show_error("Error deleting file");
@@ -219,17 +232,17 @@ class Bean_manage {
 			if(preg_match('/.json$/', $file['name'])) {
 				$retVal = $this->util->save_json_filename($gameid, $file['name']);
 				if(is_wp_error($retVal)) {
-					$this->showInfo($retVal);
+					$this->show_error($retVal);
 				}
 			}
 
 			$_FILES = array('uploadTest' => $file);
-			$msg = "Uploading <code>" . esc_html($value) . "</code>... ";
+			$msg = "Uploading " . esc_html($value) . "... ";
 			$this->util->remove_existing_media($value);
 
 			$attachment_id = media_handle_upload('uploadTest', 0);
 			if ( is_wp_error( $attachment_id ) ) {
-				$msg = $msg . "<b>Error uploading</b>: ";
+				$msg = $msg . "Error uploading: ";
 				foreach($attachment_id->errors['upload_error'] as $error) {
 					$msg = $msg . esc_html($error) . " ";
 				}
@@ -247,7 +260,13 @@ class Bean_manage {
 		return "<img class='inline-icon' src='" . plugin_dir_url(__FILE__) . "images/" . esc_html($name) . ".png' alt='" . esc_html($alt) . "'/>";
 	}
 	function show_error($msg, $dismissible=false) {
-		$this->internal_show_msg($msg, $dismissible, 'error');
+		if(is_wp_error($msg)) {
+			foreach($msg->get_error_messages() as $error) {
+				$this->internal_show_msg($error, $dismissible, 'error');
+			}
+		} else {
+			$this->internal_show_msg($msg, $dismissible, 'error');
+		}
 	}
 	function show_info($msg, $dismissible=false) {
 		$this->internal_show_msg($msg, $dismissible, 'updated');
@@ -258,7 +277,7 @@ class Bean_manage {
 		if($dismissible) {
 			$dismissClass="is-dismissible";
 		}
-		echo "<div class='notice $typeClass $dismissClass'><p>$msg</p></div>";
+		echo "<div class='notice $typeClass $dismissClass'><p>" . esc_html($msg) . "</p></div>";
 	}
 
 	public function __construct() {
