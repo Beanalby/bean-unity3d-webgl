@@ -31,7 +31,6 @@ class Bean_unity3d_webgl {
 
 	function register_menu() {
 		add_menu_page( 'Bean Admin', 'Bean Unity3d', 'manage_options', 'bean-unity3d-webgl/bean-manage.php', '', plugin_dir_url(__FILE__) . 'images/unity-logo.png', null);
-		add_menu_page( 'Bean Test', 'Bean Test', 'manage_options', 'bean-unity3d-webgl/bean-test.php', '', null, null);
 	}
 
 	function upload_mimes($mimes = array()) {
