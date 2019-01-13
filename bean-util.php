@@ -4,6 +4,7 @@ class Bean_util {
 
 	private $table_games;
 	private $bean_unity3d_db_version;
+	private $default_unity3d_version;
 
 	/* create tables on installation */
 	public function create_tables() {
@@ -18,8 +19,8 @@ class Bean_util {
 				updated_date date,
 				path text,
 				json_filename text,
-				gameVersion text,
-				unityVersion text,
+				game_version text,
+				unity3d_version text,
 				PRIMARY KEY  (id)
 			) $charset_collate;";
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -81,7 +82,8 @@ class Bean_util {
 			'slug' => $slug,
 			'release_date' => NULL,
 			'path' => $path,
-			'gameVersion' => '1.0'
+			'game_version' => '1.0',
+			'unity3d_version' => $this->default_unity3d_version
 			));
 		if(!$result) {
 			return new WP_Error('sqlerror', $wpdb->last_error, $wpdb->last_query);
@@ -124,7 +126,7 @@ class Bean_util {
 		$results = $wpdb->get_results($stmt);
 
 		if(count($results) === 0) {
-			return new WP_Error('no_game', 'game name $name not found in table ' . $this->table_games);
+			return new WP_Error('no_game', "game name $name not found in table " . $this->table_games);
 		}
 
 		/* sanity check: shouldn't happen, BUT... */
@@ -152,6 +154,24 @@ class Bean_util {
 
 	public function get_table_name() {
 		return $this->table_games;
+	}
+
+	function update_game_record($game, $name, $unity3d_version) {
+		global $wpdb;
+		$numRows = $wpdb->update(
+			$this->get_table_name(),
+			array(
+				'name' => $name,
+				'unity3d_version' => $unity3d_version
+			),
+			array(
+				'id' => $game->id
+			)
+		);
+		if($numRows === false) {
+			return new WP_Error("Error updating game row for id " . esc_html($game->id));
+		}
+		return $numRows;
 	}
 
 	function remove_existing_media($filename) {
@@ -251,6 +271,7 @@ class Bean_util {
 	public function __construct() {
 		global $wpdb;
 		$this->bean_unity3d_db_version = '1.0';
+		$this->default_unity3d_version = '2018.1';
 		$this->table_games = $wpdb->prefix . 'bean_unity3d_games';
 	}
 }

@@ -15,22 +15,28 @@ function bean_unity3d_shortcode_game($atts = [], $content = null, $tag = '') {
 	if(is_wp_error($game)) {
 		return "<p>Error:  [[" . esc_html($game->get_error_message()) . "]]</p>";
 	}
-
-	$templateUrl = plugins_url("TemplateData-2018.1", __FILE__);
 	$gameUrl = wp_upload_dir()['baseurl'] . $game->path;
 
-	/* $content .= "gameurl=" . $gameUrl . " <br/>\n"; */
-	/* $content .= "<link rel='stylesheet' href='" . $templateUrl . "/style.css'>\n"; */
-	$content = "<link rel='shortcut icon' href='" . $templateUrl . "/favicon.ico'>\n";
-	$content .= "<script src='" . $templateUrl . "/UnityProgress.js'></script>\n";
-	$content .= "<script src='" . $gameUrl . "/UnityLoader.js'></script>\n";
-	$content .= "<script>\n";
-	$content .= "    var gameInstance = UnityLoader.instantiate(\"gameContainer\", \"" . $gameUrl . "/" . esc_html($game->json_filename) . "\", {onProgress: UnityProgress});\n";
-	$content .= "</script>\n";
-	$content .= "<div class='webgl-content'>\n";
-	$content .= "<div id='gameContainer' style='width: " . $wporg_atts["width"] . "; height: " . $wporg_atts["height"] . "'></div>";
-	$content .= "<div style='clear; both'>Content after</div>";
-	$content .= "</div>";
+	$content="";
+	switch($game->unity3d_version) {
+	case "2018.1":
+		$templateUrl = plugins_url("TemplateData-2018.1", __FILE__);
+
+		$content .= "<link rel='shortcut icon' href='" . $templateUrl . "/favicon.ico'>\n";
+		$content .= "<script src='" . $templateUrl . "/UnityProgress.js'></script>\n";
+		$content .= "<script src='" . $gameUrl . "/UnityLoader.js'></script>\n";
+		$content .= "<script>\n";
+		$content .= "    var gameInstance = UnityLoader.instantiate(\"gameContainer\", \"" . $gameUrl . "/" . esc_html($game->json_filename) . "\", {onProgress: UnityProgress});\n";
+		$content .= "</script>\n";
+		$content .= "<div class='webgl-content'>\n";
+		$content .= "<div id='gameContainer' style='width: " . $wporg_atts["width"] . "; height: " . $wporg_atts["height"] . "'></div>";
+		$content .= "<div style='clear; both'>Content after</div>";
+		$content .= "</div>";
+		break;
+	default:
+		$content = "<p>Internal Error: unsupported Unity3d version [" . esc_html($game->unity3d_version) . "] encountered</p>\n";
+		break;
+	}
 	return $content;
 }
 

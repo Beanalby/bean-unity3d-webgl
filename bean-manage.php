@@ -126,6 +126,10 @@ class Bean_manage {
 	}
 
 	function edit_game($game=null) {
+		$unity3d_version_options = array(
+			'2018.1' => '20181.1 or later'
+		);
+
 		if(empty($game)) {
 			/* no game passed as a parameter, check the query string */
 			if(empty($gameid)) {
@@ -153,6 +157,18 @@ class Bean_manage {
 		// basic info
 		echo "<input type='hidden' name='gameid' value='$game->id'/>\n";
 		echo "Name: <input type='text' name='name' size='30' value='" . esc_html($game->name) . "'/><br/>\n";
+
+		echo "Unity3d Version: ";
+		echo "<select name='unity3d_version'>";
+		foreach($unity3d_version_options as $value => $display) {
+			$selected="";
+			if($value === $game->unity3d_version) {
+				$selected="selected";
+			}
+			echo "<option value='$value' $selected>$display</option>\n";
+		}
+		echo "</select><br/>\n";
+
 		echo "slug: " . esc_html($game->slug) . "<br/>\n";
 		echo "path: " . esc_html($game->path) . "<br/>\n";
 
@@ -200,6 +216,28 @@ class Bean_manage {
 			return;
 		}
 
+		// save changes to the fields of the game table
+		$retVal = $this->edit_game_save_record($game);
+		if(is_wp_error($retVal)) {
+			$this->show_error($retVal);
+		}
+		// reload the game, now that it might have changed
+		$game = $this->util->get_game($gameid);
+		if(is_wp_error($game)) {
+			$this->show_error("Game id " . esc_html($gameid) . " not found after saving (that's really weird.)");
+			return;
+		}
+
+		// save changes to files uploaded or deleted
+		$this->edit_game_save_files($game);
+	}
+
+	function edit_game_save_record($game) {
+		$this->util->update_game_record($game,
+			$_POST['name'], $_POST['unity3d_version']);
+	}
+
+	function edit_game_save_files($game) {
 		$this->util->set_upload_dir($game);
 		
 		/* echo "deleteFile: <pre>"; var_dump($_POST['deleteFile']); echo "</pre>"; */
@@ -230,7 +268,7 @@ class Bean_manage {
 
 			// if this is the .json file, make note of it for displaying game
 			if(preg_match('/.json$/', $file['name'])) {
-				$retVal = $this->util->save_json_filename($gameid, $file['name']);
+				$retVal = $this->util->save_json_filename($game->id, $file['name']);
 				if(is_wp_error($retVal)) {
 					$this->show_error($retVal);
 				}
