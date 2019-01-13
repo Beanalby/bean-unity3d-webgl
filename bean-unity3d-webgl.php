@@ -37,7 +37,7 @@ class Bean_unity3d_webgl {
 		// allow uploading the file types that Unity3d WebGL uses
 
 		// Wordpress detects the contents of js & json files as text/plain,
-		// and rejects uploads if our registered mimetype doesn' match it.
+		// and rejects uploads if our registered mimetype doesn't match it.
 		$mimes['js'] = 'text/plain';
 		$mimes['json'] = 'text/plain';
 		// same as the above, but wordpress detects it as a zip file
@@ -69,7 +69,7 @@ class Bean_unity3d_webgl {
 		$this->util = new Bean_util();
 		register_activation_hook( __FILE__, array($this, 'install'));
 		register_uninstall_hook(__FILE__, 'Bean_unity3d_webgl::uninstall');
-		add_action( 'plugins_loaded', array($this, 'update_db_check'));
+		add_action('plugins_loaded', array($this, 'update_db_check'));
 		add_action('admin_menu', array($this, 'register_menu'));
 		add_action('upload_mimes', array($this, 'upload_mimes'));
 		add_action('init', array($this, 'init_shortcodes'));
