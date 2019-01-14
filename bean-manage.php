@@ -321,6 +321,9 @@ class Bean_manage {
 		global $pagenow, $plugin_page;
 		$width = empty($_GET['width']) ? '' : $_GET['width'];
 		$height = empty($_GET['height']) ? '' : $_GET['height'];
+		$show_webgl_logo = empty($_GET['show_webgl_logo']) ? '' : ($_GET['show_webgl_logo'] === 'true');
+		$show_title = empty($_GET['show_title']) ? '' : ($_GET['show_title'] === 'true');
+		$show_fullscreen = empty($_GET['show_fullscreen']) ? '' : ($_GET['show_fullscreen'] === 'true');
 
 		$shortcode = '[bean_unity3d_game name="' . esc_html($game->name) . '"';
 		if(!empty($width)) {
@@ -328,6 +331,15 @@ class Bean_manage {
 		}
 		if(!empty($height)) {
 			$shortcode .= ' height="' . esc_html($height) . '"';
+		}
+		if($show_webgl_logo) {
+			$shortcode .= ' show_webgl_logo=true';
+		}
+		if($show_title) {
+			$shortcode .= ' show_title=true';
+		}
+		if($show_fullscreen) {
+			$shortcode .= ' show_fullscreen=true';
 		}
 		$shortcode .= "]";
 
@@ -357,13 +369,42 @@ class Bean_manage {
 			. esc_attr($this->util->get_default_height()) . "'/>px</div>";
 		echo "</div>";
 
+		echo "<div>";
+		echo "<div><label for='show_webgl_logo'>Show WebGL Logo:</label></div>";
+		echo "<div><input id='show_webgl_logo' type='checkbox' name='show_webgl_logo' value='true' ";
+		if($show_webgl_logo) {
+			echo " checked";
+		}
+		echo "/></div>";
+		echo "</div>";
+
+		echo "<div>";
+		echo "<div><label for='show_title'>Show game title:</label></div>";
+		echo "<div><input id='show_title' type='checkbox' name='show_title' value='true' ";
+		if($show_title) {
+			echo " checked";
+		}
+		echo "/></div>";
+		echo "</div>";
+
+		echo "<div>";
+		echo "<div><label for='show_fullscreen'>Show 'Fullscreen' button:</label></div>";
+		echo "<div><input id='show_fullscreen' type='checkbox' name='show_fullscreen' value='true' ";
+		if($show_fullscreen) {
+			echo " checked";
+		}
+		echo "/></div>";
+		echo "</div>";
+
+
+
 		echo "</div>"; // </table>
 
 		echo "<input type='submit' value='Apply Changes'/>";
 		echo "</form>";
 
 		echo "These options can be used via the shortcode:\n";
-		echo "<div class='bean_shortcode'>\n";
+		echo "<div class='bean_shortcode'>";
 		echo $shortcode;
 		echo "</div>\n";
 
