@@ -8,8 +8,8 @@ function bean_unity3d_shortcode_game($atts = [], $content = null, $tag = '') {
 	// currently no defaults, but set up just in case
 	$wporg_atts = shortcode_atts([
 		'name' => '',
-		'width' => '960px',
-		'height' => '600px'
+		'width' => $util->get_default_width(),
+		'height' => $util->get_default_height()
 	], $atts, $tag);
 	$game = $util->get_game_by_name($wporg_atts['name']);
 	if(is_wp_error($game)) {
@@ -29,7 +29,7 @@ function bean_unity3d_shortcode_game($atts = [], $content = null, $tag = '') {
 		$content .= "    var gameInstance = UnityLoader.instantiate(\"gameContainer\", \"" . $gameUrl . "/" . esc_html($game->json_filename) . "\", {onProgress: UnityProgress});\n";
 		$content .= "</script>\n";
 		$content .= "<div class='webgl-content'>\n";
-		$content .= "<div id='gameContainer' style='width: " . $wporg_atts["width"] . "; height: " . $wporg_atts["height"] . "'></div>";
+		$content .= "<div id='gameContainer' style='width: " . $wporg_atts["width"] . "px; height: " . $wporg_atts["height"] . "px'></div>";
 		$content .= "<div style='clear; both'>Content after</div>";
 		$content .= "</div>";
 		break;

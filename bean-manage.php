@@ -42,6 +42,7 @@ class Bean_manage {
 		$urlBase = add_query_arg('page', $plugin_page, admin_url($pagenow));
 		$editBase = add_query_arg('action', 'edit', $urlBase);
 		$deleteBase = add_query_arg('action', 'delete', $urlBase);
+		$shortcodeBase = add_query_arg('action', 'shortcode', $urlBase);
 		$games = $this->util->get_games();
 		echo "<h2>Games</h2>";
 		if(empty($games)) {
@@ -50,9 +51,12 @@ class Bean_manage {
 			foreach($games as $game) {
 				$editUrl = add_query_arg('gameid', $game->id, $editBase);
 				$deleteUrl = add_query_arg('gameid', $game->id, $deleteBase);
+				$shortcodeUrl = add_query_arg('gameid', $game->id, $shortcodeBase);
 				echo "<p>";
-				echo "<a href='$deleteUrl'>" . $this->get_icon_html('delete', 'Edit') . "Delete</a> ";
+				echo "<a href='$deleteUrl'>" . $this->get_icon_html('delete', 'Delete') . "Delete</a> ";
 				echo "<a href='$editUrl'>" . $this->get_icon_html('pencil', 'Edit') . "Edit</a> ";
+				echo "<a href='$shortcodeUrl'>" . $this->get_icon_html('application_link', 'Make Shortcode') . "Shortcode</a> ";
+
 				echo esc_html($game->name);
 				echo "</p>";
 			}
@@ -294,6 +298,79 @@ class Bean_manage {
 		$this->edit_game($game);
 	}
 
+	function make_shortcode_UI($game=null) {
+		if(empty($game)) {
+			/* no game passed as a parameter, check the query string */
+			if(empty($gameid)) {
+				$gameid = empty($_GET['gameid']) ? '' : $_GET['gameid'];
+			}
+			if(empty($gameid)) {
+				$this->show_error("Error: no game id provided");
+				return;
+			}
+			$game = $this->util->get_game($gameid);
+		}
+		if($game == null) {
+			$this->show_error("Error: game not found");
+			return;
+		} else if(is_wp_error($game)) {
+			$this->show_error($game);
+			return;
+		}
+
+		global $pagenow, $plugin_page;
+		$width = empty($_GET['width']) ? '' : $_GET['width'];
+		$height = empty($_GET['height']) ? '' : $_GET['height'];
+
+		$shortcode = '[bean_unity3d_game name="' . esc_html($game->name) . '"';
+		if(!empty($width)) {
+			$shortcode .= ' width="' . esc_html($width) . '"';
+		}
+		if(!empty($height)) {
+			$shortcode .= ' height="' . esc_html($height) . '"';
+		}
+		$shortcode .= "]";
+
+
+		echo "<h2>Make Shortcode</h2>";
+		echo "<form id='bean_shortcode_form' method='GET' action='$pagenow'>\n";
+		echo "<input type='hidden' name='page' value='"
+			. esc_attr($plugin_page) . "'/>\n";
+		echo "<input type='hidden' name='action' value='shortcode'/>\n";
+		echo "<input type='hidden' name='gameid' value='" . esc_html($gameid) . "'/>\n";
+
+		echo "<div>"; // <table>
+
+		echo "<div>"; // <tr>
+		echo "<div>Game:</div><div><b>" . esc_html($game->name) . "</b></div>";
+		echo "</div>"; // </tr>
+
+		echo "<div>";
+		echo "<div>Width:</div><div><input type='text' name='width' value='"
+			. esc_attr($width) . "' placeholder='"
+			. esc_attr($this->util->get_default_width()) . "'/>px</div>";
+		echo "</div>";
+
+		echo "<div>";
+		echo "<div>Height:</div><div><input type='text' name='height' value='"
+			. esc_attr($height) .  "' placeholder='"
+			. esc_attr($this->util->get_default_height()) . "'/>px</div>";
+		echo "</div>";
+
+		echo "</div>"; // </table>
+
+		echo "<input type='submit' value='Apply Changes'/>";
+		echo "</form>";
+
+		echo "These options can be used via the shortcode:\n";
+		echo "<div class='bean_shortcode'>\n";
+		echo $shortcode;
+		echo "</div>\n";
+
+		/* echo "When used in a post or page will look like:<br/>\n"; */
+		/* echo do_shortcode($shortcode); */
+	}
+
 	function get_icon_html($name, $alt) {
 		return "<img class='inline-icon' src='" . plugin_dir_url(__FILE__) . "images/" . esc_html($name) . ".png' alt='" . esc_html($alt) . "'/>";
 	}
@@ -347,6 +424,9 @@ class Bean_manage {
 			break;
 		case 'list':
 			$this->list_games();
+			break;
+		case 'shortcode':
+			$this->make_shortcode_UI();
 			break;
 		default:
 			$this->show_error("Error: unknown action '" . esc_html($action) . "'");

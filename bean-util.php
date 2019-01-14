@@ -5,6 +5,8 @@ class Bean_util {
 	private $table_games;
 	private $bean_unity3d_db_version;
 	private $default_unity3d_version;
+	private $default_width;
+	private $default_height;
 
 	/* create tables on installation */
 	public function create_tables() {
@@ -267,11 +269,19 @@ class Bean_util {
 		}
 	}
 
+	function get_default_width() {
+		return $this->default_width;
+	}
+	function get_default_height() {
+		return $this->default_height;
+	}
 
 	public function __construct() {
 		global $wpdb;
 		$this->bean_unity3d_db_version = '1.0';
 		$this->default_unity3d_version = '2018.1';
+		$this->default_width='960';
+		$this->default_height='540';
 		$this->table_games = $wpdb->prefix . 'bean_unity3d_games';
 	}
 }

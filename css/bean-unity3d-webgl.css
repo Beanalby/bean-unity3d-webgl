@@ -1,3 +1,37 @@
 .inline-icon {
 	vertical-align: bottom;
 }
+
+.bean_shortcode {
+    color: black;
+    background: white;
+    font-size: larger;
+    margin-top: 0em;
+    padding: 1em;
+}
+
+#bean_shortcode_form {
+    margin-bottom: 2em;
+}
+#bean_shortcode_form div {
+    display: table;
+}
+#bean_shortcode_form div div {
+    display: table-row;
+}
+#bean_shortcode_form div div div {
+    display: table-cell;
+}
+#bean_shortcode_form div div div:first-child {
+    font-weight: bold;
+    padding-right: 0.5em;
+    text-align: right;
+}
+
+
+/* all the text inputs in the shortcode form are numbers */
+#bean_shortcode_form input[type='text'] {
+    font-family: monospace;
+    text-align: right;
+    width: 3em;
+}
