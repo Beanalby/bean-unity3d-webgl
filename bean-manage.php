@@ -183,24 +183,23 @@ class Bean_manage {
 			echo "<h3>Uploaded Files</h3>\n";
 			echo " No files uploaded.  Upload the files from your <code>webgl/build</code> directory.<br/>\n";
 		} else {
-			echo "<ul>\n";
-			echo "<li><h3><input type='checkbox' class='checkAll' title='delete all' data-group='deleteFile[]'/>" . count($files) . " Uploaded Files</h3></li>\n";
+			echo "<div id='bean_game_files'>";
+
+			echo "<div>\n";
+			echo "<div>Delete<br/><input type='checkbox' class='checkAll' title='delete all' data-group='deleteFile[]'/></div><div><h3>" . count($files) . " Uploaded Files</h3></div>\n";
+			echo "</div>\n";
 			foreach($files as $file) {
 				$name = substr($file->guid, strrpos($file->guid, '/')+1);
 				$escName = esc_html($name);
 				$id = $file->id;
 				$widgetId = "file" . $id;
 				$isJson = ($name === $game->json_filename);
-				$liStyle = "";
-				if($isJson) {
-					// didn't like how this looked, leaving off for now
-					/* $liStyle = "background: lightGreen"; */
-				}
-				echo "<li style='$liStyle'>";
-				echo "<input id='$widgetId' type='checkbox' title='delete' name='deleteFile[]' value='$id'/>\n";
-				echo "<label for='$widgetId'>$escName</label></li>\n";
+				echo "<div>";
+				echo "<div><input id='$widgetId' type='checkbox' title='delete' name='deleteFile[]' value='$id'/></div>\n";
+				echo "<div><label for='$widgetId'>$escName</label></div>\n";
+				echo "</div>\n";
 			}
-			echo "</ul>\n";
+			echo "</div>\n";
 		}
 
 		// new files

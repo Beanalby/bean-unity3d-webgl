@@ -10,6 +10,26 @@
     padding: 1em;
 }
 
+#bean_game_files {
+    display: table;
+    margin-top: 1em;
+}
+#bean_game_files div {
+    display: table-row;
+}
+#bean_game_files div div {
+    display: table-cell;
+    /* border: solid 1px; */
+    padding-left: 1em;
+    vertical-align: middle;
+}
+#bean_game_files div div:first-child {
+    background: lightGray;
+    padding-right: 0.5em;
+    text-align: center;
+    vertical-align: middle;
+}
+
 #bean_shortcode_form {
     margin-bottom: 2em;
 }
