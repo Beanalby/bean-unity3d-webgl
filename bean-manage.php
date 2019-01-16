@@ -160,7 +160,8 @@ class Bean_manage {
 		echo "<form method='POST' action='$form_action' enctype='multipart/form-data'>\n";
 		// basic info
 		echo "<input type='hidden' name='gameid' value='$game->id'/>\n";
-		echo "Name: <input type='text' name='name' size='30' value='" . esc_html($game->name) . "'/><br/>\n";
+		echo "Name: <input type='text' name='name' size='30' value='"
+			. esc_html($game->name) . "'/><br/>\n";
 
 		echo "Unity3d Version: ";
 		echo "<select name='unity3d_version'>";
@@ -209,6 +210,8 @@ class Bean_manage {
 	}
 
 	function edit_game_save() {
+		$_POST = stripslashes_deep( $_POST );
+
 		$gameid = empty($_POST['gameid']) ? '' : $_POST['gameid'];
 		if(empty($gameid)) {
 			$this->show_error("Error: no game id provided");

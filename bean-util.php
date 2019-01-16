@@ -128,7 +128,7 @@ class Bean_util {
 		$results = $wpdb->get_results($stmt);
 
 		if(count($results) === 0) {
-			return new WP_Error('no_game', "game name $name not found in table " . $this->table_games);
+			return new WP_Error('no_game', "game name [$name] not found in table " . $this->table_games);
 		}
 
 		/* sanity check: shouldn't happen, BUT... */
@@ -160,6 +160,7 @@ class Bean_util {
 
 	function update_game_record($game, $name, $unity3d_version) {
 		global $wpdb;
+
 		$numRows = $wpdb->update(
 			$this->get_table_name(),
 			array(
