@@ -206,6 +206,10 @@ class Bean_manage {
 		echo "<p>Upload: <input type='file' name='uploadTest[]' multiple/></p>\n";
 		echo "<input type='submit' value='Save Changes'/><br/>";
 		echo "</form>\n";
+
+		$return_link = add_query_arg('page', $plugin_page, admin_url($pagenow));
+		$return_link = add_query_arg('action', 'list', $return_link);
+		echo "<p><a href='" . esc_attr($return_link) . "'>Back to games list</a></p>\n";
 	}
 
 	function edit_game_save() {
