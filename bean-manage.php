@@ -26,10 +26,10 @@ class Bean_manage {
 			$this->show_error('add_error', "Error adding game: " . $result->get_error_message());
 			return;
 		}
-		/* echo '<p>result: <pre>'; var_dump($result); echo "</pre></p>\n"; */
+
 		$game = $this->util->get_game($result);
 		if(is_wp_error($game)) {
-			$this->show_error('add_error', "Internal error: couldn't find game [$result] just inserted " . $game);
+			$this->show_error('add_error', "Internal error: couldn't find game [<code>" . esc_html($result) . "</code>] just inserted: " . $game);
 			return;
 		}
 
@@ -181,12 +181,12 @@ class Bean_manage {
 		$files = $this->util->get_game_files($game);
 		if(!$files) {
 			echo "<h3>Uploaded Files</h3>\n";
-			echo " No files uploaded.  Upload the files from your <code>webgl/build</code> directory.<br/>\n";
+			echo " No files uploaded.  Upload all the files from your <code>build</code> subdirectory of the webgl build (<code>build.data.unityweb</code>, <code>UnityLoader,js</code>, etc.<br/>\n";
 		} else {
 			echo "<div id='bean_game_files'>";
 
 			echo "<div>\n";
-			echo "<div>Delete<br/><input type='checkbox' class='checkAll' title='delete all' data-group='deleteFile[]'/></div><div><h3>" . count($files) . " Uploaded Files</h3></div>\n";
+			echo "<div><label for='deleteAll'>Delete</label><br/><input id='deleteAll' type='checkbox' class='checkAll' title='delete all' data-group='deleteFile[]'/></div><div><h3>" . count($files) . " Uploaded Files</h3></div>\n";
 			echo "</div>\n";
 			foreach($files as $file) {
 				$name = substr($file->guid, strrpos($file->guid, '/')+1);
@@ -218,7 +218,7 @@ class Bean_manage {
 		}
 		$game = $this->util->get_game($gameid);
 		if(is_wp_error($game)) {
-			$this->show_error("Game id " . esc_html($gameid) . " not found");
+			$this->show_error("Game id [<code>" . esc_html($gameid) . "</code>] not found");
 			return;
 		}
 
@@ -230,7 +230,7 @@ class Bean_manage {
 		// reload the game, now that it might have changed
 		$game = $this->util->get_game($gameid);
 		if(is_wp_error($game)) {
-			$this->show_error("Game id " . esc_html($gameid) . " not found after saving (that's really weird.)");
+			$this->show_error("Game id [<code>" . esc_html($gameid) . "</code>] not found after saving (that's really weird.)");
 			return;
 		}
 
@@ -435,7 +435,7 @@ class Bean_manage {
 		if($dismissible) {
 			$dismissClass="is-dismissible";
 		}
-		echo "<div class='notice $typeClass $dismissClass'><p>" . esc_html($msg) . "</p></div>";
+		echo "<div class='notice $typeClass $dismissClass'><p>" . wp_kses_post($msg) . "</p></div>";
 	}
 
 	public function __construct() {

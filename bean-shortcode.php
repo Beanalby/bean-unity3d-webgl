@@ -19,7 +19,7 @@ function bean_unity3d_shortcode_game($atts = [], $content = null, $tag = '') {
 	$wporg_atts["name"] = html_entity_decode($wporg_atts["name"]);
 	$game = $util->get_game_by_name($wporg_atts['name']);
 	if(is_wp_error($game)) {
-		return "<p>Error:  [[" . esc_html($game->get_error_message()) . "]]</p>";
+		return "<p>Error:  " . wp_kses_post($game->get_error_message()) . "</p>";
 	}
 	$game_url = wp_upload_dir()['baseurl'] . $game->path;
 
