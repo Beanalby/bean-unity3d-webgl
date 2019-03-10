@@ -1,4 +1,4 @@
-=== Bean's Unity3d WebGL Manager ===
+=== Bean Unity3d WebGL ===
 Contributors: Beanalby
 Donate link: https://www.paypal.me/JasonViers
 Tags: Unity, Unity3d, games, shortcode
@@ -8,7 +8,7 @@ Requires PHP: 5.3.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Bean's Unity3d WebGL manager allows you to upload and manage your WebGL builds of Unity3d projects to Wordpress.
+Bean's Unity3d WebGL Manager allows you to upload and manage your WebGL builds of Unity3d projects to Wordpress.
 
 == Description ==
 
