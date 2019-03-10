@@ -45,8 +45,9 @@ class Bean_manage {
 		$shortcodeBase = add_query_arg('action', 'shortcode', $urlBase);
 		$games = $this->util->get_games();
 		echo "<h2>Games</h2>";
+		echo "<p>Here's where you can manage games you've uploaded to the site.  Each game you upload can be embedded in a page or post via a shortcode.</p>";
 		if(empty($games)) {
-			echo "<p>No games yet.  Make one!</p>";
+			echo "<p>No games yet.  Add one!</p>";
 		} else {
 			foreach($games as $game) {
 				$editUrl = add_query_arg('gameid', $game->id, $editBase);
@@ -131,7 +132,7 @@ class Bean_manage {
 
 	function edit_game($game=null) {
 		$unity3d_version_options = array(
-			'2018.1' => '20181.1 or later'
+			'2018.1' => '2018.1 or later'
 		);
 
 		if(empty($game)) {
@@ -154,8 +155,11 @@ class Bean_manage {
 		}
 		$this->util->set_upload_dir($game);
 		global $pagenow, $plugin_page;
-		$form_action = add_query_arg('page', $plugin_page, admin_url($pagenow));
-		$form_action = add_query_arg('action', 'edit-save', $form_action);
+		$urlBase = add_query_arg('page', $plugin_page, admin_url($pagenow));
+		$form_action = add_query_arg('action', 'edit-save', $urlBase);
+		$shortcodeBase = add_query_arg('action', 'shortcode', $urlBase);
+		$shortcodeUrl = add_query_arg('gameid', $game->id, $shortcodeBase);
+
 		echo "<h2>Edit Game</h2>\n";
 		echo "<form method='POST' action='$form_action' enctype='multipart/form-data'>\n";
 		// basic info
@@ -181,7 +185,7 @@ class Bean_manage {
 		$files = $this->util->get_game_files($game);
 		if(!$files) {
 			echo "<h3>Uploaded Files</h3>\n";
-			echo " No files uploaded.  Upload all the files from your <code>build</code> subdirectory of the webgl build (<code>build.data.unityweb</code>, <code>UnityLoader,js</code>, etc.<br/>\n";
+			echo " No files uploaded.  Upload all the files from your <code>build</code> subdirectory of the webgl build (<code>*.unityweb</code>, <code>UnityLoader,js</code>, etc.<br/>\n";
 		} else {
 			echo "<div id='bean_game_files'>";
 
@@ -206,6 +210,8 @@ class Bean_manage {
 		echo "<p>Upload: <input type='file' name='uploadTest[]' multiple/></p>\n";
 		echo "<input type='submit' value='Save Changes'/><br/>";
 		echo "</form>\n";
+
+		echo "<p><a href='$shortcodeUrl'>" . $this->get_icon_html('application_link', 'Make Shortcode') . "Make a Shortcode to embed this game</a></p>";
 
 		$return_link = add_query_arg('page', $plugin_page, admin_url($pagenow));
 		$return_link = add_query_arg('action', 'list', $return_link);
