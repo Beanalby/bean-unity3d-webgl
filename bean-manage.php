@@ -17,23 +17,24 @@ class Bean_manage {
 
 	function add_game_save() {
 		$name = empty($_POST['name']) ? '' : stripslashes($_POST['name']);
+		$name = $this->util->filter_name($name);
 		if(empty($name)) {
 			$this->show_error("Error: no name provided");
 			return;
 		}
 		$result = $this->util->add_game($name);
 		if(is_wp_error($result)) {
-			$this->show_error('add_error', "Error adding game: " . $result->get_error_message());
+			$this->show_error("Error adding game: " . $result->get_error_message());
 			return;
 		}
 
 		$game = $this->util->get_game($result);
 		if(is_wp_error($game)) {
-			$this->show_error('add_error', "Internal error: couldn't find game [<code>" . esc_html($result) . "</code>] just inserted: " . $game);
+			$this->show_error("Internal error: couldn't find game [<code>" . esc_html($result) . "</code>] just inserted: " . $game);
 			return;
 		}
 
-		$this->show_info("New game '" . $name . "' added.");
+		$this->show_info("New game '" . esc_html($name) . "' added.");
 		$this->edit_game($game);
 	}
 
@@ -72,6 +73,7 @@ class Bean_manage {
 			if(empty($gameid)) {
 				$gameid = empty($_GET['gameid']) ? '' : $_GET['gameid'];
 			}
+			$gameid = $this->util->filter_gameid($gameid);
 			if(empty($gameid)) {
 				$this->show_error("Error: no game id provided");
 				return;
@@ -104,6 +106,7 @@ class Bean_manage {
 			if(empty($gameid)) {
 				$gameid = empty($_POST['gameid']) ? '' : $_POST['gameid'];
 			}
+			$gameid = $this->util->filter_gameid($gameid);
 			if(empty($gameid)) {
 				$this->show_error("Error: no game id provided");
 				return;
@@ -131,15 +134,13 @@ class Bean_manage {
 	}
 
 	function edit_game($game=null) {
-		$unity3d_version_options = array(
-			'2018.1' => '2018.1 or later'
-		);
 
 		if(empty($game)) {
 			/* no game passed as a parameter, check the query string */
 			if(empty($gameid)) {
 				$gameid = empty($_GET['gameid']) ? '' : $_GET['gameid'];
 			}
+			$gameid = $this->util->filter_gameid($gameid);
 			if(empty($gameid)) {
 				$this->show_error("Error: no game id provided");
 				return;
@@ -169,7 +170,7 @@ class Bean_manage {
 
 		echo "Unity3d Version: ";
 		echo "<select name='unity3d_version'>";
-		foreach($unity3d_version_options as $value => $display) {
+		foreach(Bean_util::get_unity3d_version_options() as $value => $display) {
 			$selected="";
 			if($value === $game->unity3d_version) {
 				$selected="selected";
@@ -222,6 +223,7 @@ class Bean_manage {
 		$_POST = stripslashes_deep( $_POST );
 
 		$gameid = empty($_POST['gameid']) ? '' : $_POST['gameid'];
+		$gameid = $this->util->filter_gameid($gameid);
 		if(empty($gameid)) {
 			$this->show_error("Error: no game id provided");
 			return;
@@ -249,7 +251,7 @@ class Bean_manage {
 	}
 
 	function edit_game_save_record($game) {
-		$this->util->update_game_record($game,
+		return $this->util->update_game_record($game,
 			$_POST['name'], $_POST['unity3d_version']);
 	}
 
@@ -259,7 +261,7 @@ class Bean_manage {
 		/* echo "deleteFile: <pre>"; var_dump($_POST['deleteFile']); echo "</pre>"; */
 		if(!empty($_POST['deleteFile'])) {
 			foreach($_POST['deleteFile'] as $deleteFile) {
-				$msg = "Deleting file id $deleteFile";
+				$msg = "Deleting file id " . esc_html($deleteFile);
 				$this->show_info($msg);
 				if(false === wp_delete_attachment($deleteFile, true)) {
 					$this->show_error("Error deleting file");
@@ -275,7 +277,7 @@ class Bean_manage {
 				continue;
 			}
 			$file = array(
-				'name' => $files['name'][$key],
+				'name' => sanitize_file_name($files['name'][$key]),
 				'type' => $files['type'][$key],
 				'tmp_name' => $files['tmp_name'][$key],
 				'error' => $files['error'][$key],
@@ -316,6 +318,7 @@ class Bean_manage {
 			if(empty($gameid)) {
 				$gameid = empty($_GET['gameid']) ? '' : $_GET['gameid'];
 			}
+			$gameid = $this->util->filter_gameid($gameid);
 			if(empty($gameid)) {
 				$this->show_error("Error: no game id provided");
 				return;
@@ -331,12 +334,14 @@ class Bean_manage {
 		}
 
 		global $pagenow, $plugin_page;
-		$width = empty($_GET['width']) ? '' : $_GET['width'];
-		$height = empty($_GET['height']) ? '' : $_GET['height'];
-		$show_webgl_logo = empty($_GET['show_webgl_logo']) ? '' : ($_GET['show_webgl_logo'] === 'true');
-		$show_title = empty($_GET['show_title']) ? '' : ($_GET['show_title'] === 'true');
-		$show_fullscreen = empty($_GET['show_fullscreen']) ? '' : ($_GET['show_fullscreen'] === 'true');
-
+		$width = sanitize_text_field(empty($_GET['width']) ? '' : $_GET['width']);
+		$height = sanitize_text_field(empty($_GET['height']) ? '' : $_GET['height']);
+		$show_webgl_logo = filter_var(empty($_GET['show_webgl_logo']) ? '' :,
+			FILTER_VALIDATE_BOOLEAN);
+		$show_title = filter_var(empty($_GET['show_title']) ? '',
+			FILTER_VALIDATE_BOOLEAN);
+		$show_fullscreen = filter_var(empty($_GET['show_fullscreen']) ? '',
+			FILTER_VALIDATE_BOOLEAN);
 		$shortcode = '[bean_unity3d_game name="' . esc_html($game->name) . '"';
 		if(!empty($width)) {
 			$shortcode .= ' width="' . esc_html($width) . '"';

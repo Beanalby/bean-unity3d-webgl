@@ -8,6 +8,16 @@ class Bean_util {
 	private $default_width;
 	private $default_height;
 
+	private static $unity3d_version_options = array(
+		'2018.1' => '2018.1 or later'
+	);
+	public function get_unity3d_version_options() {
+		return $unity3d_version_options;
+	}
+	public function get_unity3d_version_values() {
+		return array_keys($unity3d_version_options);
+	}
+
 	/* create tables on installation */
 	public function create_tables() {
 		global $wpdb;
@@ -61,9 +71,10 @@ class Bean_util {
 		if(empty($name)) {
 			return new WP_Error('paramerror', 'Empty game name');
 		}
-		$slug = sanitize_title_with_dashes($name, NULL, 'save');
-		/* echo "[$name] becomes [$slug]<br/>\n"; */
-		/* echo '<p>upload_dir: <pre>'; var_dump(wp_upload_dir()); echo "</pre></p>\n"; */
+		$slug = sanitize_file_name($name);
+		if(empty($slug)) {
+			return new WP_Error('paramerror', 'Invalid game name (empty slug)');
+		}
 
 		/* check if directory already exists.  If so, make a new slug */
 		$slugBase = $slug; $loop=1;
@@ -100,6 +111,20 @@ class Bean_util {
 		delete_option( 'bean_unity3d_db_version' );
 		$sql = "DROP TABLE IF EXISTS {$table_name}";
 		$wpdb->query( $sql );
+	}
+
+	public function filter_gameid($gameid) {
+		return filter_var($gameid, FILTER_SANITIZE_NUMBER_INT);
+	}
+	public function filter_name($name) {
+		return filter_var($name, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW);
+	}
+	public function filter_unity3d_version($unity3d_version) {
+		if(in_array($unity3d_version, get_unity3d_version_values())) {
+			return $unity3d_version;
+		} else {
+			return "";
+		}
 	}
 
 	public function get_game($gameid) {
@@ -164,6 +189,14 @@ class Bean_util {
 	function update_game_record($game, $name, $unity3d_version) {
 		global $wpdb;
 
+		$name = $this->util->filter_name($name);
+		if(empty($name)) {
+			return new WP_Error("Invalid name, aborting edit");
+		}
+		$unity3d_version = $this->util->filter_unity3d_version($unity3d_version);
+		if(empty($name)) {
+			return new WP_Error("Invalid unity3d version, aborting edit");
+		}
 		$numRows = $wpdb->update(
 			$this->get_table_name(),
 			array(
