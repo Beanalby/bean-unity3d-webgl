@@ -6,7 +6,7 @@ function bean_unity3d_shortcode_game($atts = [], $content = null, $tag = '') {
 	$atts = array_change_key_case((array)$atts, CASE_LOWER);
 
 	// currently no defaults, but set up just in case
-	$wporg_atts = shortcode_atts([
+	$atts = shortcode_atts([
 		'name' => '',
 		'width' => $util->get_default_width(),
 		'height' => $util->get_default_height(),
@@ -16,8 +16,16 @@ function bean_unity3d_shortcode_game($atts = [], $content = null, $tag = '') {
 	], $atts, $tag);
 
 	// decode &lt; and &gt; if they occurred in the name
-	$wporg_atts["name"] = html_entity_decode($wporg_atts["name"]);
-	$game = $util->get_game_by_name($wporg_atts['name']);
+	$atts["name"] = html_entity_decode($atts["name"]);
+
+	$atts["name"] = $util->filter_name($atts["name"]);
+	$atts["width"] = sanitize_text_field($atts["width"]);
+	$atts["height"] = sanitize_text_field($atts["height"]);
+	$atts["show_fullscreen"] = filter_var($atts["show_fullscreen"], FILTER_VALIDATE_BOOLEAN);
+	$atts["show_title"] = filter_var($atts["show_title"], FILTER_VALIDATE_BOOLEAN);
+	$atts["show_webgl_logo"] = filter_var($atts["show_webgl_logo"], FILTER_VALIDATE_BOOLEAN);
+
+	$game = $util->get_game_by_name($atts['name']);
 	if(is_wp_error($game)) {
 		return "<p>Error:  " . wp_kses_post($game->get_error_message()) . "</p>";
 	}
@@ -38,19 +46,19 @@ function bean_unity3d_shortcode_game($atts = [], $content = null, $tag = '') {
 		$content .= "<script>\n";
 		$content .= "    var gameInstance = UnityLoader.instantiate('gameContainer', '$json_url', {onProgress: UnityProgress});\n";
 		$content .= "</script>\n";
-		$content .= "<div class='webgl-content' style='width: " . esc_attr($wporg_atts["width"]) . "px'>\n";
-		$content .= "<div id='gameContainer' style='width: " . $wporg_atts["width"] . "px; height: " . $wporg_atts["height"] . "px'></div>\n";
+		$content .= "<div class='webgl-content' style='width: " . esc_attr($atts["width"]) . "px'>\n";
+		$content .= "<div id='gameContainer' style='width: " . $atts["width"] . "px; height: " . $atts["height"] . "px'></div>\n";
 
-		if($wporg_atts["show_webgl_logo"] or $wporg_atts["show_fullscreen"] or $wporg_atts["show_title"]) {
+		if($atts["show_webgl_logo"] or $atts["show_fullscreen"] or $atts["show_title"]) {
 			$content .= "<div class='footer'>\n";
-			if($wporg_atts["show_webgl_logo"]) {
+			if($atts["show_webgl_logo"]) {
 				$content .= "<div class='webgl-logo' style=\"background-image: url('$webgl_logo_url')\"></div>\n";
 			}
-			if($wporg_atts["show_fullscreen"]) {
+			if($atts["show_fullscreen"]) {
 				$content .= "<div class='fullscreen' style=\"background-image: url('$fullscreen_img_url')\" onclick=\"gameInstance.SetFullscreen(1)\"></div>\n";
 			}
-			if($wporg_atts["show_title"]) {
-				$content .= "<div class='title'>" . esc_attr($wporg_atts["name"]) . "</div>\n";
+			if($atts["show_title"]) {
+				$content .= "<div class='title'>" . esc_attr($atts["name"]) . "</div>\n";
 			}
 			$content .= "</div>\n<!-- /footer -->\n";
 		}

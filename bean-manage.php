@@ -336,12 +336,13 @@ class Bean_manage {
 		global $pagenow, $plugin_page;
 		$width = sanitize_text_field(empty($_GET['width']) ? '' : $_GET['width']);
 		$height = sanitize_text_field(empty($_GET['height']) ? '' : $_GET['height']);
-		$show_webgl_logo = filter_var(empty($_GET['show_webgl_logo']) ? '' :,
-			FILTER_VALIDATE_BOOLEAN);
-		$show_title = filter_var(empty($_GET['show_title']) ? '',
-			FILTER_VALIDATE_BOOLEAN);
-		$show_fullscreen = filter_var(empty($_GET['show_fullscreen']) ? '',
-			FILTER_VALIDATE_BOOLEAN);
+		$show_webgl_logo = empty($_GET['show_webgl_logo']) ? '' : $_GET['show_webgl_logo'];
+		$show_webgl_logo = filter_var($show_webgl_logo, FILTER_VALIDATE_BOOLEAN);
+		$show_title = empty($_GET['show_title']) ? '' : $_GET['show_title'];
+		$show_title = filter_var($show_title, FILTER_VALIDATE_BOOLEAN);
+		$show_fullscreen = empty($_GET['show_fullscreen']) ? '' : $_GET['show_fullscreen'];
+		$show_fullscreen = filter_var($show_fullscreen, FILTER_VALIDATE_BOOLEAN);
+
 		$shortcode = '[bean_unity3d_game name="' . esc_html($game->name) . '"';
 		if(!empty($width)) {
 			$shortcode .= ' width="' . esc_html($width) . '"';
@@ -424,6 +425,11 @@ class Bean_manage {
 		echo "<div class='bean_shortcode'>";
 		echo $shortcode;
 		echo "</div>\n";
+
+		global $pagenow, $plugin_page;
+		$return_link = add_query_arg('page', $plugin_page, admin_url($pagenow));
+		$return_link = add_query_arg('action', 'list', $return_link);
+		echo "<p><a href='" . esc_attr($return_link) . "'>Back to games list</a></p>\n";
 
 		/* echo "When used in a post or page will look like:<br/>\n"; */
 		/* echo do_shortcode($shortcode); */
