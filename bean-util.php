@@ -11,11 +11,11 @@ class Bean_util {
 	private static $unity3d_version_options = array(
 		'2018.1' => '2018.1 or later'
 	);
-	public function get_unity3d_version_options() {
-		return $unity3d_version_options;
+	public static function get_unity3d_version_options() {
+		return Bean_util::$unity3d_version_options;
 	}
-	public function get_unity3d_version_values() {
-		return array_keys($unity3d_version_options);
+	public static function get_unity3d_version_values() {
+		return array_keys(Bean_util::$unity3d_version_options);
 	}
 
 	/* create tables on installation */
@@ -120,7 +120,7 @@ class Bean_util {
 		return filter_var($name, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW);
 	}
 	public function filter_unity3d_version($unity3d_version) {
-		if(in_array($unity3d_version, get_unity3d_version_values())) {
+		if(in_array($unity3d_version, Bean_util::get_unity3d_version_values())) {
 			return $unity3d_version;
 		} else {
 			return "";
@@ -189,11 +189,11 @@ class Bean_util {
 	function update_game_record($game, $name, $unity3d_version) {
 		global $wpdb;
 
-		$name = $this->util->filter_name($name);
+		$name = $this->filter_name($name);
 		if(empty($name)) {
 			return new WP_Error("Invalid name, aborting edit");
 		}
-		$unity3d_version = $this->util->filter_unity3d_version($unity3d_version);
+		$unity3d_version = $this->filter_unity3d_version($unity3d_version);
 		if(empty($name)) {
 			return new WP_Error("Invalid unity3d version, aborting edit");
 		}
