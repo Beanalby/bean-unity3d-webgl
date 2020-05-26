@@ -317,7 +317,7 @@ class Bean_util {
 		$this->bean_unity3d_db_version = '1.0';
 		$this->default_unity3d_version = '2018.1';
 		$this->default_width='960';
-		$this->default_height='540';
+		$this->default_height='600';
 		$this->table_games = $wpdb->prefix . 'bean_unity3d_games';
 	}
 }
