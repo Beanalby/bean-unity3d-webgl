@@ -39,9 +39,9 @@ class Bean_unity3d_webgl {
 		// Wordpress detects the contents of js & json files as text/plain,
 		// and rejects uploads if our registered mimetype doesn't match it.
 		$mimes['js'] = 'text/plain';
-		$mimes['json'] = 'text/plain';
+		$mimes['json'] = 'application/json';
 		// same as the above, but wordpress detects it as a zip file
-		$mimes['unityweb'] = 'application/x-gzip';
+		$mimes['unityweb'] = 'application/gzip';
 		/* Here's a bunch that aren't extensions we use, but Wordpress needs to
 		   know about any 3 or 4 letter words that may appear between periods.
 		   Otherwise it will secretly rename
