@@ -176,7 +176,8 @@ class Bean_util {
 	public function get_game_files($game) {
 		global $wpdb;
 		// assume set_upload_dir has been called;
-		$fullpath = wp_upload_dir()['url'] . "/%";
+                // match stuff after ://, could be http or https
+		$fullpath = preg_replace('/https?:\/\//', '%://', wp_upload_dir()['url']) . "/%";
 		/* echo "fullpath: $fullpath<br/>\n"; */
 		$stmt = $wpdb->prepare("SELECT id, guid FROM $wpdb->posts WHERE guid like '%s';", $fullpath);
 		return $wpdb->get_results($stmt);
